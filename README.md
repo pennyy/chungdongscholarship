@@ -352,17 +352,17 @@ const TYPES = {
       note:'신학생(간사)은 담당 목사의 추천을 승인에 준하여 관리하므로 별도 심의가 생략됩니다.',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'소속 공동체에서의 개인적인 사역 목표', fields:[
-          {id:'intro', label:'앞으로 계획하고 있는 신앙 또는 사역 목표', type:'textarea', req:true, min:150}]} ],
+          {id:'intro', label:'앞으로 계획하고 있는 신앙 또는 사역 목표', type:'textarea', req:true, min:300}]} ],
       docs:['등록금고지서','재학증명서'] },
   B:{ code:'B', name:'대학생(교회봉사)', short:'신앙 · 봉사 중심', parent:true, reapply:true, recommender:'member',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 등 지원 이유', fields:[
-          {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:150}]} ],
+          {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:300}]} ],
       docs:['등록금고지서','재학증명서'] },
   C:{ code:'C', name:'대학생(가계곤란)', short:'신앙 · 봉사 + 경제상황', parent:true, reapply:true, recommender:'member',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 · 경제상황 등 지원 이유', fields:[
-          {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:150},
+          {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:300},
           {id:'economy', label:'가정의 경제 상황', type:'textarea', req:true, min:100, help:'장학금이 필요한 사유를 구체적으로 적어 주세요. 위원회만 열람합니다.'}]} ],
       docs:['등록금고지서','재학증명서','가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
   D:{ code:'D', name:'고등학생', short:'보호자 자녀소개 비중 ↑', parent:true, reapply:true, recommender:'member',
@@ -378,8 +378,8 @@ const TYPES = {
           {id:'serviceDetail', label:'봉사 내용', type:'text', req:false, ph:'예: 고등부 찬양팀 건반', showIf:['service','봉사 중']},
           {id:'attend', label:'최근 6개월 예배 출석', type:'select', options:['매주 출석','월 2~3회','월 1회 이하'], req:true}]},
         {title:'자기 소개 + 자녀 소개', hint:'지원자와 보호자 작성란을 따로 둡니다', fields:[
-          {id:'intro', label:'[지원자] 지원 이유와 앞으로의 신앙·봉사 계획', type:'textarea', req:true, min:150},
-          {id:'parentIntro', label:'[보호자] 자녀 소개', type:'textarea', req:true, min:150, help:'보호자께서 직접 작성해 주세요.'}]} ],
+          {id:'intro', label:'[지원자] 지원 이유와 앞으로의 신앙·봉사 계획', type:'textarea', req:true, min:300},
+          {id:'parentIntro', label:'[보호자] 자녀 소개', type:'textarea', req:true, min:300, help:'보호자께서 직접 작성해 주세요.'}]} ],
       docs:['가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
   E:{ code:'E', name:'교역자자녀', short:'교회사무실 확인 후 등록', parent:false, reapply:false, recommender:'office',
       note:'교역자자녀 지원은 교회 사무실에서 교역자 자녀임을 확인한 뒤 등록합니다.',
@@ -389,7 +389,7 @@ const TYPES = {
           {id:'guardianTitle', label:'보호자 직분', type:'seg', options:['교역자','사역자','선교사'], req:true}]} ],
       docs:['등록금고지서','재학증명서'] },
 };
-const REAPPLY_FIELD = {id:'testimony', label:'장학수여 간증문', type:'textarea', req:true, min:150,
+const REAPPLY_FIELD = {id:'testimony', label:'장학수여 간증문', type:'textarea', req:true, min:200,
   help:'직전 학기 장학금은 나에게 어떤 도움이 되었고, 어떻게 사용했는지 적어 주세요.'};
 
 const RUBRIC = [
