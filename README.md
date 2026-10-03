@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -223,7 +224,94 @@ table.board{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:60;box-shadow:var(--shadow);animation:fi .25s ease both;max-width:90vw}
 .toast b{color:var(--gold);font-family:var(--mono)}
 .empty{text-align:center;padding:48px 20px;color:var(--ink-2)}
+
+/* ───────── 화면 4 · 위원회 심사 ───────── */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.toolbar .sp{flex:1}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+.switch input{appearance:none;width:34px;height:20px;border-radius:999px;background:#C9CEC6;position:relative;cursor:pointer;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.switch input:checked{background:var(--ink)}
+.switch input:checked::after{left:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.stat small{display:block;font-size:12px;color:var(--ink-2)}
+.stat b{font-family:var(--mono);font-size:24px;font-weight:500;letter-spacing:-.02em}
+.stat b span{font-size:13px;color:var(--ink-3);margin-left:2px}
+.score{display:flex;align-items:center;gap:8px;min-width:120px}
+.score .bar{flex:1;height:6px;background:var(--stone);border-radius:3px;overflow:hidden}
+.score .bar i{display:block;height:100%;background:var(--ink)}
+.score b{font-family:var(--mono);font-weight:500;font-size:12.5px;min-width:28px}
+.dc{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px;white-space:nowrap;border:1px solid var(--line);color:var(--ink-2)}
+.dc-SELECT{background:var(--brick);border-color:var(--brick);color:#fff}
+.dc-HOLD{background:var(--warn-soft);border-color:#EBCB9E;color:var(--warn)}
+.dc-REJECT{background:var(--stone);color:var(--ink-3);text-decoration:line-through}
+.docs-n{font-family:var(--mono);font-size:12.5px}
+.docs-n.ok{color:var(--moss)}
+.docs-n.miss{color:var(--brick)}
+
+/* 결합 헤더 — 두 문서가 하나의 접수번호로 봉합되는 모습 */
+.join{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;margin-bottom:20px}
+.join .doc-id small{display:block;font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+.join .doc-id b{font-family:var(--mono);font-weight:500;font-size:14px}
+.join .doc-id:last-child{text-align:right}
+.join .knot{display:flex;flex-direction:column;align-items:center;gap:4px}
+.join .knot .rcpt{font-family:var(--mono);font-size:15px;font-weight:500;background:var(--ink);color:#fff;padding:6px 14px;border-radius:999px;white-space:nowrap}
+.join .knot .rcpt.pending{background:var(--stone);color:var(--ink-3)}
+.join .knot small{font-size:11px;color:var(--ink-3)}
+.join .wire{height:1px;background:repeating-linear-gradient(90deg,var(--ink-3) 0 4px,transparent 4px 8px)}
+@media (max-width:700px){.join{grid-template-columns:1fr}.join .doc-id:last-child{text-align:left}}
+
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.pane.rec{position:sticky;top:84px}
+@media (max-width:900px){.pane.rec{position:static}}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.pane-h{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid var(--line)}
+.pane-h h2{font-size:15px;margin:0;flex:1}
+.pane-h .who{font-size:12px;color:var(--ink-3)}
+.pane.rec .pane-h{background:var(--brick-soft);border-radius:var(--r) var(--r) 0 0}
+.pane.app .pane-h{background:#E8EDF1;border-radius:var(--r) var(--r) 0 0}
+.blk{padding:18px 22px;border-bottom:1px solid var(--line)}
+.blk:last-child{border-bottom:0}
+.blk h3{font-size:12px;letter-spacing:.06em;color:var(--ink-2);margin:0 0 10px;font-weight:700}
+.rb-row{display:grid;grid-template-columns:90px 1fr 34px;gap:10px;align-items:center;font-size:13.5px;padding:4px 0}
+.rb-pips{display:flex;gap:4px}
+.rb-pips i{flex:1;height:8px;border-radius:2px;background:var(--stone)}
+.rb-pips i.on{background:var(--brick)}
+.rb-row b{font-family:var(--mono);font-weight:500;text-align:right}
+.rb-total{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:8px;padding-top:10px;font-size:13.5px}
+.rb-total b{font-family:var(--mono);font-weight:500}
+.quote{font-size:14px;line-height:1.85;color:var(--ink);white-space:pre-wrap;margin:0}
+.meta{font-size:12px;color:var(--ink-3);margin-top:8px}
+.qa{display:grid;grid-template-columns:110px 1fr;gap:6px 14px;font-size:13.5px;margin:0}
+.qa dt{color:var(--ink-3)}
+.qa dd{margin:0;white-space:pre-wrap;word-break:keep-all}
+.qa dd.long{grid-column:1/-1;background:#FAFBF9;border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.75;margin-bottom:6px}
+.qa dt.long{grid-column:1/-1;margin-top:4px}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th{text-align:left;font-size:11.5px;color:var(--ink-3);font-weight:600;padding:0 6px 6px}
+.cmp td{padding:6px;border-top:1px solid var(--line)}
+.cmp td:last-child{text-align:right;white-space:nowrap}
+.mk{font-size:12px;font-weight:600}
+.mk.ok{color:var(--moss)}
+.mk.no{color:var(--brick)}
+.doclist{list-style:none;margin:0;padding:0;font-size:13.5px}
+.doclist li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px dashed var(--line)}
+.doclist li:first-child{border-top:0}
+.doclist li span:last-child{font-family:var(--mono);font-size:12px;color:var(--moss);text-align:right;word-break:break-all}
+.doclist li.miss span:last-child{color:var(--brick)}
+.decide{margin-top:20px;padding:22px}
+.decide .segs{margin:6px 0 14px}
+.decide textarea{min-height:90px}
+.decide .foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.decide .foot small{color:var(--ink-3);font-size:12px}
+.notice{background:var(--moss-soft);color:var(--moss);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px}
+.empty-app{color:var(--ink-3);font-size:13.5px;padding:28px 22px;text-align:center}
+@media print{.top,.toolbar,.decide .foot,.back{display:none!important}body{background:#fff}.card{box-shadow:none}}
+
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
 <header class="top">
@@ -234,6 +322,7 @@ table.board{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px
       <button class="tab" data-go="recommend">추천 발의</button>
       <button class="tab" data-go="board">진행 현황</button>
       <button class="tab" data-go="student">학생 화면</button>
+      <button class="tab" data-go="review">위원회 심사</button>
     </nav>
   </div>
 </header>
@@ -317,21 +406,46 @@ const STATUS = {WAIT:'수락·보완 대기 중', ACCEPT:'지원 수락', DECLIN
 /* =====================================================================
    1. 상태 저장소 (프로토타입: 메모리 + localStorage)
    ===================================================================== */
-const KEY = 'jd-scholar-proto-v1';
+const KEY = 'jd-scholar-proto-v2';
+const LONG = (a,b) => a + ' ' + b;
 const seed = () => ([
   {id:'REC-2026-0012', token:'t8k2qa', type:'C', createdAt:'2026-09-18',
    student:{name:'김하늘', birth:'2006-03-14', phone:'010-2345-6789', email:'sky@example.com'},
    recommender:{name:'김은혜', dept:'청년부', title:'권사'},
-   rubric:{attend:4,faith:5,service:4,bond:5,growth:4}, reason:'(비공개)', status:'WAIT', app:null},
+   rubric:{attend:4,faith:5,service:4,bond:5,growth:4},
+   reason:'하늘 학생은 2년째 청년부 새가족팀에서 섬기고 있습니다. 주일마다 예배 30분 전에 나와 새가족 안내 데스크를 지키고, 등록 후 3주 이내 새가족에게 직접 연락해 소그룹 연결까지 돕습니다. 올해 초 아버지의 사업이 어려워지면서 주중 아르바이트를 두 곳 하고 있는데도 섬김의 자리를 비운 적이 거의 없습니다. 지난 여름 수련회에서는 조장을 맡아 조원 여섯 명을 끝까지 챙겼고, 수련회 후에도 조원들과 기도 모임을 이어가고 있습니다. 학비 부담이 줄어든다면 아르바이트 시간을 줄이고 학업과 공동체 섬김에 더 집중할 수 있으리라 확신합니다.',
+   status:'WAIT', app:null},
   {id:'REC-2026-0011', token:'p3m9zx', type:'D', createdAt:'2026-09-16',
    student:{name:'박온유', birth:'2009-07-02', phone:'010-3456-7890', email:'onyu@example.com'},
    recommender:{name:'박성실', dept:'고등부', title:'장로'},
-   rubric:{attend:5,faith:4,service:3,bond:4,growth:5}, reason:'(비공개)', status:'ACCEPT', app:null},
+   rubric:{attend:5,faith:4,service:3,bond:4,growth:5},
+   reason:'온유 학생은 중등부 때부터 한 번도 빠지지 않고 예배에 출석해 온 학생입니다. 고등부에 올라와서는 찬양팀 건반 반주를 맡았고, 매주 토요일 연습에 가장 먼저 와서 악보를 정리합니다. 말수가 적지만 후배들이 어려워할 때 조용히 옆에 앉아 이야기를 들어주는 모습을 여러 번 보았습니다. 어머니 혼자 세 남매를 키우고 계셔서 학원이나 교재 구입에 어려움이 있다고 들었습니다. 장학금이 학업을 이어가는 데 실질적인 힘이 되고, 온유 학생에게는 공동체가 자신을 지켜보고 응원한다는 확신이 될 것입니다.',
+   status:'ACCEPT', app:null,
+   studentInput:{name:'박온유', birth:'2009-07-02', phone:'010-3456-7890', email:'onyu@example.com'}},
+  {id:'REC-2026-0010', token:'k7r4ha', type:'A', createdAt:'2026-09-12',
+   student:{name:'정은총', birth:'2001-05-09', phone:'010-6789-0123', email:'grace@example.com'},
+   recommender:{name:'최요한', dept:'신학생부', title:'담당목사'},
+   rubric:{attend:5,faith:5,service:5,bond:5,growth:5},
+   reason:'정은총 간사는 2년간 교육부 초등부 간사로 사역하며 교사 교육과 여름성경학교 기획을 맡아 왔습니다. 신학대학원 진학 후에도 주중 심방과 주일 사역을 성실하게 감당하고 있으며, 교사들과의 관계도 매우 좋습니다. 사역과 학업을 병행하느라 경제적으로 여유가 없는 상황이라 담당 목사로서 추천합니다. 앞으로 다음세대 사역자로 성장할 가능성이 매우 높은 사역자입니다. 이번 장학금이 학업에 전념할 수 있는 시간을 만들어 줄 것이라 기대합니다.',
+   status:'DONE',
+   studentInput:{name:'정은총', birth:'2001-05-09', phone:'010-6789-0123', email:'grace@example.com'},
+   app:{id:'APP-2026-0008', receipt:'JD-2026-2-0008', submittedAt:'2026-09-15', type:'A', reapply:false,
+     data:{school:'감리교신학대학교', major:'신학과', course:'석사', semester:'3학기', community:'교육부 초등부', role:'초등부 간사',
+       intro:'초등부 간사로 섬기며 아이들이 예배를 지루한 시간이 아니라 하나님을 만나는 시간으로 경험하도록 돕는 것이 저의 사역 목표입니다. 내년에는 교사 양성 과정을 정비해 새 교사가 6개월 안에 반을 맡을 수 있도록 커리큘럼을 만들고, 졸업 후에는 다음세대 전담 사역자로 섬기고 싶습니다.'},
+     files:{'등록금고지서':'2026-2_등록금고지서_정은총.pdf','재학증명서':'재학증명서_정은총.pdf'}}},
   {id:'REC-2026-0009', token:'w1n5cd', type:'B', createdAt:'2026-09-10',
    student:{name:'이소망', birth:'2004-11-21', phone:'010-4567-8901', email:'hope@example.com'},
    recommender:{name:'이믿음', dept:'대학부', title:'집사'},
-   rubric:{attend:5,faith:5,service:5,bond:4,growth:4}, reason:'(비공개)', status:'DONE',
-   app:{id:'APP-2026-0007', receipt:'JD-2026-2-0007', submittedAt:'2026-09-14'}},
+   rubric:{attend:5,faith:5,service:5,bond:4,growth:4},
+   reason:'소망 학생은 대학부 예배팀 리더로 1년 반째 섬기고 있습니다. 매주 콘티를 준비하고 팀원들과 금요일마다 모여 기도와 연습을 인도합니다. 올해 봄에는 예배팀 인원이 절반으로 줄어 어려운 시기가 있었는데, 소망 학생이 직접 신입생들을 찾아가 초대하고 기초부터 가르쳐 지금은 팀이 다시 열두 명이 되었습니다. 지난 학기 장학금을 받은 뒤로는 교내 근로 시간을 줄이고 예배 준비에 더 많은 시간을 쓰고 있다고 들었습니다. 성실함과 책임감이 공동체 안에서 이미 증명된 학생이기에 다시 추천합니다.',
+   status:'DONE',
+   studentInput:{name:'이소망', birth:'2004-11-21', phone:'010-4567-8901', email:'hope@example.com'},
+   parentInput:{name:'이선한', phone:'010-1212-3434', agreedAt:'2026-09-11'},
+   app:{id:'APP-2026-0007', receipt:'JD-2026-2-0007', submittedAt:'2026-09-14', type:'B', reapply:true,
+     data:{school:'서울대학교', major:'교육학과', course:'학사', semester:'5학기', community:'대학부 예배팀', role:'예배팀 리더',
+       intro:'예배팀을 섬기며 예배가 공동체를 하나로 묶는 힘을 가장 가까이에서 경험했습니다. 남은 학기 동안 예배팀 후임 리더 두 명을 세우고, 졸업 후에는 교사로 일하며 청소년부 교사로 섬기고 싶습니다.',
+       testimony:'지난 학기 장학금으로 등록금 일부를 충당하면서 주 20시간이던 교내 근로를 12시간으로 줄일 수 있었습니다. 남은 시간에 예배팀 신입 팀원 교육을 맡았고, 학점도 3.4에서 3.9로 올랐습니다.'},
+     files:{'등록금고지서':'등록금고지서_2026-2.pdf','재학증명서':'재학증명서_이소망.pdf'}}},
 ]);
 let DB;
 try{ DB = JSON.parse(localStorage.getItem(KEY)) || seed(); }catch(e){ DB = seed(); }
@@ -370,6 +484,7 @@ function route(){
   window.scrollTo(0,0);
   if(view === 'board') return renderBoard();
   if(view === 'student') return renderStudent(token);
+  if(view === 'review') return token ? renderReviewDetail(token) : renderReview();
   return renderRecommend();
 }
 $$('.tab').forEach(t => t.onclick = () => {
@@ -625,7 +740,7 @@ function renderBoard(){
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>추천서 ID</th><th>피추천인</th><th>장학 유형</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>학생 링크</th></tr></thead>
+      <thead><tr><th>추천서 ID</th><th>피추천인</th><th>장학 유형</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="mono">${r.id}<div style="color:var(--ink-3);font-size:11px">${r.createdAt}</div></td>
         <td><b>${esc(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${esc(r.student.phone)}</div></td>
@@ -633,7 +748,7 @@ function renderBoard(){
         <td>${esc(r.recommender.name)} <span style="color:var(--ink-3);font-size:12px">${esc(r.recommender.dept)} ${esc(r.recommender.title)}</span></td>
         <td><span class="st st-${r.status}">${STATUS[r.status]}</span></td>
         <td class="mono">${r.app?.receipt ? `${r.app.receipt}<div style="color:var(--ink-3);font-size:11px">${r.id} + ${r.app.id}</div>` : '—'}</td>
-        <td><a class="btn btn-ghost btn-sm" href="#student/${r.token}">열기</a> <button class="btn btn-ghost btn-sm" data-copy="${r.token}">복사</button></td>
+        <td style="white-space:nowrap"><a class="btn btn-ghost btn-sm" href="#student/${r.token}">열기</a> <button class="btn btn-ghost btn-sm" data-copy="${r.token}">복사</button> <a class="btn btn-ghost btn-sm" href="#review/${r.id}">심사</a></td>
       </tr>`).join('')}</tbody></table>`
     : `<div class="empty">이 상태의 지원 건이 없습니다. 다른 상태를 선택하거나 <a href="#recommend">새 추천을 작성</a>하세요.</div>`}
   </div>`;
@@ -643,6 +758,205 @@ function renderBoard(){
     navigator.clipboard?.writeText(url); toast('학생 지원서 링크를 복사했습니다');
   });
   $('#reset').onclick = () => { DB = seed(); save(); boardFilter='ALL'; renderBoard(); toast('데모 데이터를 초기화했습니다'); };
+}
+
+/* =====================================================================
+   5-1. 화면 4 · 장학사업위원회 '매칭 및 최종 접수' 대시보드
+        — 추천서(REC) + 학생 지원서(APP) → 통합 접수번호로 결합해 심사
+   ===================================================================== */
+const DECISION = {PENDING:'심사 대기', SELECT:'선정', HOLD:'보류', REJECT:'미선정'};
+const rubricTotal = r => RUBRIC.reduce((a,x)=>a+(r.rubric?.[x.id]||0),0);
+const rubricAvg = r => r.rubric && Object.keys(r.rubric).length ? rubricTotal(r)/RUBRIC.length : null;
+const docsOf = r => { const t = TYPES[r.type]; const f = r.app?.files || r.files || {}; return {need:t.docs, have:t.docs.filter(d=>f[d]), files:f}; };
+const decisionOf = r => r.review?.decision || 'PENDING';
+const mask = name => !name ? '' : name.length <= 1 ? name : name[0] + '*'.repeat(Math.max(1,name.length-2)) + (name.length>2 ? name.at(-1) : '');
+let RV = {type:'ALL', blind:false, onlyComplete:false};
+
+function reviewRows(){
+  return DB.filter(r => (RV.type==='ALL' || r.type===RV.type) && (!RV.onlyComplete || r.status==='DONE'));
+}
+function renderReview(){
+  const all = DB, done = all.filter(r=>r.status==='DONE');
+  const scored = all.filter(r=>rubricAvg(r)!==null);
+  const avg = scored.length ? (scored.reduce((a,r)=>a+rubricAvg(r),0)/scored.length).toFixed(2) : '—';
+  const sel = all.filter(r=>decisionOf(r)==='SELECT').length;
+  const rows = reviewRows();
+  const nm = n => RV.blind ? mask(n) : esc(n);
+  $('#app').innerHTML = `
+  <div class="hero"><div>
+    <div class="eyebrow">화면 4 · 장학사업위원회 전용</div>
+    <h1>매칭 및 최종 접수</h1>
+    <p class="lede">추천서와 학생 지원서를 통합 접수번호로 묶어 한 화면에서 심사합니다. 추천 평가 점수와 추천 사유는 이 화면에서만 열람할 수 있습니다.</p>
+  </div></div>
+  <div class="stats">
+    <div class="stat"><small>전체 추천</small><b>${all.length}<span>건</span></b></div>
+    <div class="stat"><small>최종 지원 완료</small><b>${done.length}<span>건</span></b></div>
+    <div class="stat"><small>루브릭 평균 (5점 만점)</small><b>${avg}</b></div>
+    <div class="stat"><small>선정 결정</small><b>${sel}<span>건</span></b></div>
+  </div>
+  <div class="toolbar">
+    <div class="chips" style="margin:0">
+      <button class="chip" data-t="ALL" aria-pressed="${RV.type==='ALL'}">전체 유형<b>${all.length}</b></button>
+      ${Object.values(TYPES).map(t=>`<button class="chip" data-t="${t.code}" aria-pressed="${RV.type===t.code}">${t.code} ${t.name}<b>${all.filter(r=>r.type===t.code).length}</b></button>`).join('')}
+    </div>
+    <span class="sp"></span>
+    <label class="switch"><input type="checkbox" id="onlyDone" ${RV.onlyComplete?'checked':''}> 최종 지원 완료만</label>
+    <label class="switch"><input type="checkbox" id="blind" ${RV.blind?'checked':''}> 블라인드 심사</label>
+    <button class="btn btn-ink btn-sm" id="exportX">엑셀 현황표 내보내기</button>
+  </div>
+  <div class="card table-wrap">
+    ${rows.length ? `<table class="board">
+      <thead><tr><th>통합 접수번호</th><th>피추천인</th><th>장학 유형</th><th>추천인</th><th>루브릭</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
+      <tbody>${rows.map(r => { const a = rubricAvg(r), d = docsOf(r); return `<tr>
+        <td class="mono">${r.app?.receipt || '<span style="color:var(--ink-3)">미발급</span>'}<div style="color:var(--ink-3);font-size:11px">${r.id}${r.app?' + '+r.app.id:''}</div></td>
+        <td><b>${nm(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${r.student.birth.slice(0,4)}년생</div></td>
+        <td style="white-space:nowrap"><span class="tag">${r.type}</span> ${TYPES[r.type].name}</td>
+        <td>${nm(r.recommender.name)} <span style="color:var(--ink-3);font-size:12px">${esc(r.recommender.title)}</span></td>
+        <td>${a===null ? '<span style="color:var(--ink-3);font-size:12px">해당 없음</span>' : `<div class="score"><div class="bar"><i style="width:${a/5*100}%"></i></div><b>${a.toFixed(1)}</b></div>`}</td>
+        <td><span class="docs-n ${d.have.length===d.need.length?'ok':d.have.length?'':'miss'}">${d.have.length}/${d.need.length}</span></td>
+        <td><span class="st st-${r.status}">${STATUS[r.status]}</span></td>
+        <td><span class="dc dc-${decisionOf(r)}">${DECISION[decisionOf(r)]}</span></td>
+        <td><a class="btn btn-ghost btn-sm" href="#review/${r.id}">상세 심사</a></td>
+      </tr>`;}).join('')}</tbody></table>`
+    : `<div class="empty">조건에 맞는 지원 건이 없습니다. 유형 필터를 '전체 유형'으로 바꾸거나 '최종 지원 완료만'을 끄세요.</div>`}
+  </div>`;
+  $$('[data-t]').forEach(c => c.onclick = () => { RV.type = c.dataset.t; renderReview(); });
+  $('#blind').onchange = e => { RV.blind = e.target.checked; renderReview(); };
+  $('#onlyDone').onchange = e => { RV.onlyComplete = e.target.checked; renderReview(); };
+  $('#exportX').onclick = exportExcel;
+}
+
+/* 상세 — 추천서(좌) + 학생 지원서(우) 결합 화면 */
+function valueOf(f, v){ return v === undefined || v === '' ? '<span style="color:var(--ink-3)">미입력</span>' : esc(v); }
+function renderReviewDetail(id){
+  const r = DB.find(x => x.id === id);
+  if(!r){ $('#app').innerHTML = `<div class="card empty"><h2 style="font-family:var(--display)">해당 추천서를 찾을 수 없습니다</h2><p>목록에서 다시 선택하세요.</p><a class="btn btn-ink" href="#review">심사 목록으로</a></div>`; return; }
+  const t = TYPES[r.type], a = rubricAvg(r), d = docsOf(r), app = r.app;
+  const nm = n => RV.blind ? mask(n) : esc(n);
+  const office = t.recommender === 'office';
+  const cmpKeys = [['name','성명'],['birth','생년월일'],['phone','휴대전화'],['email','이메일']];
+  const si = r.studentInput;
+  const cv = (k,v) => k==='name' ? nm(v) : (RV.blind && (k==='phone'||k==='email')) ? '비공개' : esc(v);
+  const same = (k) => k==='phone' ? normPhone(si[k])===normPhone(r.student[k]) : k==='email' ? String(si[k]).trim().toLowerCase()===String(r.student[k]).trim().toLowerCase() : String(si[k]).trim()===String(r.student[k]).trim();
+  const fields = app ? [...t.sections.flatMap(s => s.fields.map(f => ({...f, sec:s.title}))), ...(app.reapply ? [{...REAPPLY_FIELD, sec:'재지원'}] : [])] : [];
+  const bySec = fields.reduce((m,f)=>((m[f.sec]=m[f.sec]||[]).push(f),m),{});
+  const rv = r.review || {decision: t.code==='A' ? 'SELECT' : 'PENDING', memo:''};
+
+  $('#app').innerHTML = `
+  <a href="#review" class="btn btn-ghost btn-sm back" style="margin-bottom:16px">← 심사 목록</a>
+  <div class="hero" style="margin-bottom:18px"><div>
+    <div class="eyebrow">상세 심사 · 유형 ${t.code} ${t.name}</div>
+    <h1>${nm(r.student.name)} <span style="font-family:var(--body);font-size:16px;color:var(--ink-3);font-weight:400">${r.student.birth}</span></h1>
+  </div><span class="st st-${r.status}">${STATUS[r.status]}</span></div>
+
+  <div class="join">
+    <div class="doc-id"><small>추천서 ID · ${r.createdAt}</small><b>${r.id}</b></div>
+    <div class="knot"><div style="display:flex;align-items:center;gap:10px;width:100%"><span class="wire" style="flex:1;min-width:24px"></span>
+      <span class="rcpt ${app?'':'pending'}">${app?.receipt || '접수번호 미발급'}</span><span class="wire" style="flex:1;min-width:24px"></span></div>
+      <small>${app ? '통합 접수번호 · '+app.submittedAt+' 결합' : '학생 최종 제출 시 발급'}</small></div>
+    <div class="doc-id"><small>학생 지원서 ID</small><b>${app?.id || '—'}</b></div>
+  </div>
+
+  <div class="split">
+    <section class="card pane rec">
+      <div class="pane-h">${sealSVG.replace('class="seal"','width="22" height="22"')}<h2>추천서</h2><span class="who">위원회 전용 · 학생 비공개</span></div>
+      <div class="blk"><h3>추천인</h3>
+        <dl class="qa"><dt>성명</dt><dd>${nm(r.recommender.name)}</dd><dt>소속 · 직분</dt><dd>${esc(r.recommender.dept)} · ${esc(r.recommender.title)}</dd></dl>
+        ${t.code==='A' ? `<div class="notice" style="margin:12px 0 0">담당 목사 추천은 승인에 준하여 관리합니다. 별도 심의를 생략할 수 있습니다.</div>`:''}
+        ${office ? `<div class="notice" style="margin:12px 0 0">교회사무실에서 교역자 자녀임을 확인해 등록한 건입니다.</div>`:''}
+      </div>
+      ${office ? '' : `
+      <div class="blk"><h3>루브릭 평가</h3>
+        ${RUBRIC.map(x => { const v = r.rubric?.[x.id]||0; return `<div class="rb-row"><span>${x.name}</span><span class="rb-pips">${[1,2,3,4,5].map(i=>`<i class="${i<=v?'on':''}"></i>`).join('')}</span><b>${v}</b></div>`; }).join('')}
+        <div class="rb-total"><span>합계 / 평균</span><b>${rubricTotal(r)} / ${RUBRIC.length*5}점 · ${a?.toFixed(2) ?? '—'}</b></div>
+      </div>
+      <div class="blk"><h3>추천 사유</h3>
+        <p class="quote">${esc(r.reason)}</p>
+        <div class="meta">공백 제외 ${charCount(r.reason)}자</div>
+      </div>`}
+    </section>
+
+    <section class="card pane app">
+      <div class="pane-h"><h2>학생 지원서</h2><span class="who">${app ? '제출 '+app.submittedAt : '미제출'}</span></div>
+      ${si ? `<div class="blk"><h3>본인정보 대조 (추천인 입력 ↔ 학생 입력)</h3>
+        <table class="cmp"><thead><tr><th>항목</th><th>추천인 입력</th><th>학생 입력</th><th></th></tr></thead><tbody>
+        ${cmpKeys.map(([k,l]) => `<tr><td>${l}</td><td>${cv(k, r.student[k])}</td><td>${cv(k, si[k])}</td><td><span class="mk ${same(k)?'ok':'no'}">${same(k)?'✓ 일치':'✕ 불일치'}</span></td></tr>`).join('')}
+        </tbody></table>
+        <div class="meta">자동 인증 서버가 없으므로 위원회가 이 표로 본인 여부를 직접 확인합니다.</div></div>` : ''}
+      ${r.parentInput ? `<div class="blk"><h3>보호자 동의</h3><dl class="qa"><dt>보호자</dt><dd>${nm(r.parentInput.name)} · ${RV.blind?'비공개':esc(r.parentInput.phone)}</dd><dt>동의일</dt><dd>${esc(r.parentInput.agreedAt)}</dd></dl></div>` : ''}
+      ${app ? Object.entries(bySec).map(([sec, fs]) => `<div class="blk"><h3>${sec}</h3><dl class="qa">
+          ${fs.map(f => f.type==='textarea'
+            ? `<dt class="long">${f.label}</dt><dd class="long">${valueOf(f, app.data?.[f.id])}</dd>`
+            : `<dt>${f.label}</dt><dd>${valueOf(f, app.data?.[f.id])}</dd>`).join('')}
+        </dl></div>`).join('')
+      : `<div class="empty-app">학생이 아직 지원서를 제출하지 않았습니다.<br>현재 상태: ${STATUS[r.status]}</div>`}
+      <div class="blk"><h3>증빙서류 ${d.have.length}/${d.need.length}</h3>
+        <ul class="doclist">${d.need.map(x => `<li class="${d.files[x]?'':'miss'}"><span>${x}</span><span>${d.files[x] ? esc(d.files[x]) : '미제출'}</span></li>`).join('')}</ul>
+      </div>
+    </section>
+  </div>
+
+  <section class="card decide">
+    <div class="sec-h" style="margin-bottom:6px"><div><h2>심사 결정</h2><p>결정과 메모는 엑셀 현황표에 함께 내보내집니다.</p></div></div>
+    <div class="segs" role="radiogroup" aria-label="심사 결정">
+      ${Object.entries(DECISION).map(([k,v])=>`<label class="seg"><input type="radio" name="dec" value="${k}" ${rv.decision===k?'checked':''}><span>${v}</span></label>`).join('')}
+    </div>
+    <label class="f"><span>심사 메모</span><textarea id="memo" placeholder="예) 루브릭·추천 사유 모두 구체적. 가계곤란 증빙 확인 완료.">${esc(rv.memo)}</textarea></label>
+    <div class="foot">
+      <button class="btn btn-brick" id="saveRv" ${app || office ? '' : 'disabled'}>심사 결정 저장</button>
+      <button class="btn btn-ghost" onclick="window.print()">인쇄</button>
+      <small>${r.review?.at ? `마지막 저장 ${esc(r.review.at)}` : app || office ? '' : '최종 지원 완료 후 결정할 수 있습니다'}</small>
+    </div>
+  </section>`;
+
+  $('#saveRv').onclick = () => {
+    const dec = $('input[name=dec]:checked')?.value || 'PENDING';
+    r.review = {decision:dec, memo:$('#memo').value, at:new Date().toLocaleString('ko-KR',{hour12:false})};
+    save(); toast(`심사 결정을 저장했습니다 · ${DECISION[dec]}`); renderReviewDetail(id);
+  };
+}
+
+/* 엑셀 현황표 내보내기 — 시트 3개: 현황표 / 루브릭·추천사유 / 유형별 집계 */
+function exportExcel(){
+  const rows = reviewRows();
+  const blind = RV.blind;
+  const nm = n => blind ? mask(n) : n;
+  const s1 = rows.map(r => { const d = docsOf(r), a = rubricAvg(r); return {
+    '통합 접수번호': r.app?.receipt || '', '추천서 ID': r.id, '지원서 ID': r.app?.id || '',
+    '장학 유형': `${r.type} ${TYPES[r.type].name}`, '피추천인': nm(r.student.name), '생년월일': r.student.birth,
+    '연락처': blind ? '' : r.student.phone, '이메일': blind ? '' : r.student.email,
+    '추천인': nm(r.recommender.name), '추천인 소속': r.recommender.dept, '추천인 직분': r.recommender.title, '추천일': r.createdAt,
+    '루브릭 합계': a===null ? '' : rubricTotal(r), '루브릭 평균': a===null ? '' : +a.toFixed(2),
+    '학교': r.app?.data?.school || '', '전공/학년': r.app?.data?.major || r.app?.data?.grade || '', '과정/학기': [r.app?.data?.course, r.app?.data?.semester].filter(Boolean).join(' '),
+    '재지원': r.app ? (r.app.reapply ? 'Y' : 'N') : '',
+    '서류 제출': `${d.have.length}/${d.need.length}`, '미제출 서류': d.need.filter(x=>!d.files[x]).join(', '),
+    '진행 상태': STATUS[r.status], '지원서 제출일': r.app?.submittedAt || '',
+    '심사 결정': DECISION[decisionOf(r)], '심사 메모': r.review?.memo || '' }; });
+  const s2 = rows.filter(r => TYPES[r.type].recommender !== 'office').map(r => ({
+    '추천서 ID': r.id, '피추천인': nm(r.student.name), '장학 유형': `${r.type} ${TYPES[r.type].name}`,
+    ...Object.fromEntries(RUBRIC.map(x => [x.name, r.rubric?.[x.id] ?? ''])),
+    '합계': rubricTotal(r), '추천 사유': r.reason, '사유 글자수(공백 제외)': charCount(r.reason) }));
+  const s3 = Object.values(TYPES).map(t => { const g = DB.filter(r=>r.type===t.code); return {
+    '장학 유형': `${t.code} ${t.name}`, '추천': g.length,
+    '수락 대기': g.filter(r=>r.status==='WAIT').length, '지원 수락': g.filter(r=>r.status==='ACCEPT').length,
+    '서류 완료': g.filter(r=>r.status==='DOCS').length, '최종 완료': g.filter(r=>r.status==='DONE').length,
+    '미수락': g.filter(r=>r.status==='DECLINE').length, '선정': g.filter(r=>decisionOf(r)==='SELECT').length }; });
+  const stamp = today().replace(/-/g,'');
+  if(window.XLSX){
+    const wb = XLSX.utils.book_new();
+    const add = (data, name, widths) => { const ws = XLSX.utils.json_to_sheet(data.length ? data : [{'안내':'내보낼 데이터가 없습니다'}]);
+      ws['!cols'] = widths.map(w => ({wch:w})); ws['!autofilter'] = data.length ? {ref: ws['!ref']} : undefined; XLSX.utils.book_append_sheet(wb, ws, name); };
+    add(s1, '장학생 지원 현황표', [16,15,15,18,10,12,15,22,10,12,10,12,10,10,18,12,12,7,9,30,14,13,10,40]);
+    add(s2, '루브릭·추천사유', [15,10,18,8,8,8,10,10,7,80,10]);
+    add(s3, '유형별 집계', [20,7,9,9,9,9,7,7]);
+    XLSX.writeFile(wb, `장학생지원현황표_${stamp}.xlsx`);
+    toast(`엑셀 현황표를 내려받았습니다 · ${rows.length}건`);
+  } else {             // CDN을 못 불러온 경우 CSV로 대체
+    const keys = Object.keys(s1[0] || {'안내':''});
+    const csv = '\ufeff' + [keys.join(','), ...s1.map(o => keys.map(k => `"${String(o[k]??'').replace(/"/g,'""')}"`).join(','))].join('\r\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `장학생지원현황표_${stamp}.csv`; a.click();
+    toast('엑셀 라이브러리를 불러오지 못해 CSV로 내려받았습니다');
+  }
 }
 
 /* =====================================================================
@@ -856,7 +1170,7 @@ function stuForm(main, raw, rec, t, ss){
     if(e.target.type === 'file'){
       const i = +e.target.id.replace('file',''); const d = t.docs[i]; const file = e.target.files[0]; if(!file) return;
       if(file.size > 10*1024*1024){ toast('10MB 이하 파일만 올릴 수 있습니다'); return; }
-      ss.files[d] = file.name;
+      ss.files[d] = file.name; raw.files = {...ss.files}; save();
       const box = $(`[data-doc="${i}"]`, form); box.classList.add('ok');
       $('small', box).textContent = '✓ ' + file.name; $('label', box).textContent = '바꾸기';
       const allDocs = t.docs.every(x => ss.files[x]);
