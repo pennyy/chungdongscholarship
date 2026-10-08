@@ -315,7 +315,7 @@ table.board{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand"><b>정동 장학</b><span>추천인 발의형 온라인 지원</span></div>
+    <div class="brand"><b>정동 장학사업위원회</b><span>추천인 발의형 온라인 지원</span></div>
     <span class="proto-flag">PROTOTYPE</span>
     <nav class="tabs" aria-label="화면 전환">
       <button class="tab" data-go="recommend">추천 발의</button>
@@ -346,25 +346,25 @@ const academic = {title:'전공·과정', hint:'학교 및 전공학과 세부 �
 const condition = {title:'장학생 조건', hint:'소속 공동체 및 담당 역할', fields:[F.community,F.role]};
 
 const TYPES = {
-  A:{ code:'A', name:'신학생(간사)', short:'신학 전공 · 담당 목사 추천', parent:false, reapply:false,
+  A:{ code:'A', name:'부르심의 여정 장학금', short:'미래의 목회자로 준비되며 현재 교회를 섬기는 신학생', parent:false, reapply:false,
       recommender:'pastor',
-      note:'신학생(간사)은 담당 목사의 추천을 승인에 준하여 관리하므로 별도 심의가 생략됩니다.',
+      note:'신학생(간사)대상 장학금은 담당 목사의 추천을 승인에 준하여 관리하므로 별도 심의가 생략됩니다.',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'소속 공동체에서의 개인적인 사역 목표', fields:[
           {id:'intro', label:'앞으로 계획하고 있는 신앙 또는 사역 목표', type:'textarea', req:true, min:300}]} ],
       docs:['등록금고지서','재학증명서'] },
-  B:{ code:'B', name:'대학생(교회봉사)', short:'신앙 · 봉사 중심', parent:true, reapply:true, recommender:'member',
+  B:{ code:'B', name:'향기로운 헌신 장학금', short:'조건 없는 열심으로 선후배와 동기들에게 귀감이 되는 학생', parent:true, reapply:true, recommender:'member',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 등 지원 이유', fields:[
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:300}]} ],
       docs:['등록금고지서','재학증명서'] },
-  C:{ code:'C', name:'대학생(가계곤란)', short:'신앙 · 봉사 + 경제상황', parent:true, reapply:true, recommender:'member',
+  C:{ code:'C', name:'푸른 감람나무 장학금', short:'삶의 무게가 버겁지만 교회의 자리를 묵묵히 지켜내는 학생', parent:true, reapply:true, recommender:'member',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 · 경제상황 등 지원 이유', fields:[
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:300},
           {id:'economy', label:'가정의 경제 상황', type:'textarea', req:true, min:100, help:'장학금이 필요한 사유를 구체적으로 적어 주세요. 위원회만 열람합니다.'}]} ],
       docs:['등록금고지서','재학증명서','가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  D:{ code:'D', name:'고등학생', short:'보호자 자녀소개 비중 ↑', parent:true, reapply:true, recommender:'member',
+  D:{ code:'D', name:'다윗의 물매 장학금', short:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년', parent:true, reapply:true, recommender:'member',
       sections:[
         {title:'인적·학적', hint:'학교명 · 학년 · 반 · 연락처', fields:[
           {id:'school', label:'학교명', type:'text', req:true, ph:'예: 배재고등학교'},
@@ -380,7 +380,7 @@ const TYPES = {
           {id:'intro', label:'[지원자] 지원 이유와 앞으로의 신앙·봉사 계획', type:'textarea', req:true, min:300},
           {id:'parentIntro', label:'[보호자] 자녀 소개', type:'textarea', req:true, min:300, help:'보호자께서 직접 작성해 주세요.'}]} ],
       docs:['가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  E:{ code:'E', name:'교역자자녀', short:'교회사무실 확인 후 등록', parent:false, reapply:false, recommender:'office',
+  E:{ code:'E', name:'함께 짊어짐 장학금', short:'교역자가 온전히 사역에 전념할 수 있도록 교회가 함께 품어주는 자녀', parent:false, reapply:false, recommender:'office',
       note:'교역자자녀 지원은 교회 사무실에서 교역자 자녀임을 확인한 뒤 등록합니다.',
       sections:[ academic,
         {title:'장학생 조건', hint:'보호자 직분', fields:[
