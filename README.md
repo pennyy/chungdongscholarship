@@ -367,7 +367,7 @@ const TYPES = {
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:200},
           {id:'economy', label:'가정의 경제 상황', type:'textarea', req:true, min:100, help:'장학금이 필요한 사유를 구체적으로 적어 주세요. 위원회만 열람합니다.'}]} ],
       docs:['등록금고지서','재학증명서','가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  D:{ code:'D', name:'정동 비전(고등학생 대상)', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
+  D:{ code:'D', name:'정동 비전(고등학생)', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
       sections:[
         {title:'인적·학적', hint:'학교명 · 학년 · 반 · 연락처', fields:[
           {id:'school', label:'학교명', type:'text', req:true, ph:'예: 배재고등학교'},
