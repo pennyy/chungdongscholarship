@@ -83,7 +83,7 @@ textarea{min-height:130px;resize:vertical;line-height:1.7}
 .btn[disabled]{opacity:.35;cursor:not-allowed;transform:none}
 
 /* ───────── Type picker ───────── */
-.types{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media (max-width:760px){.types{grid-template-columns:repeat(2,1fr)}}
 .type{position:relative;text-align:left;background:#FAFBF9;border:1px solid var(--line);border-radius:10px;padding:14px 12px 12px;cursor:pointer;transition:border-color .15s,background .15s}
 .type:hover{border-color:var(--ink-2)}
@@ -340,26 +340,34 @@ const F = {
 const academic = {title:'전공·과정', hint:'학교 및 전공학과 세부 선택', fields:[F.school,F.major,F.course,F.semester]};
 const condition = {title:'장학생 조건', hint:'소속 공동체 및 담당 역할', fields:[F.community,F.role]};
 
+/* 추천인 소속 부서 — 장학금 유형별 선택 리스트 */
+const CHOIRS = ['글로리아찬양대','호산나찬양대','웨슬리찬양대','정동앙상블','시온오케스트라','벧엘찬양대','샬롬찬양대'];
+const DEPTS = {
+  pastor: ['교육부','문화부','예배부','선교부','사회봉사부','관리부','재무부'],
+  member: ['new정동','드리밍스타','작은예수마을','예수꿈동산','교사양성위원회','젊은이교회위원회','멀티미디어위원회','영어사역위원회','청장년선교위원회', ...CHOIRS],
+  choir:  [...CHOIRS],
+};
+
 const TYPES = {
   A:{ code:'A', name:'정동 소명', desc:'미래의 목회자로 준비되며 현재 교회를 섬기는 신학생 대상 장학금', parent:false, reapply:false, noEvals:true,
-      recommender:'pastor',
+      recommender:'pastor', depts:DEPTS.pastor,
       note:'정동 소명 장학금은 담당 목사의 추천을 승인에 준하여 관리하므로 별도 심의가 생략됩니다.',
       sections:[ academic, condition,
         {title:'자기 소개', hint:'소속 공동체에서의 개인적인 사역 목표', fields:[
           {id:'intro', label:'앞으로 계획하고 있는 신앙 또는 사역 목표', type:'textarea', req:true, min:200}]} ],
       docs:['등록금고지서','재학증명서'] },
-  B:{ code:'B', name:'정동 섬김', desc:'조건 없는 열심으로 선후배와 동기들에게 귀감이 되는 학생 대상 장학금', parent:true, reapply:true, recommender:'member',
+  B:{ code:'B', name:'정동 섬김', desc:'조건 없는 열심으로 선후배와 동기들에게 귀감이 되는 학생 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 등 지원 이유', fields:[
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:200}]} ],
       docs:['등록금고지서','재학증명서'] },
-  C:{ code:'C', name:'정동 동행', desc:'삶의 무게가 버겁지만 교회의 자리를 묵묵히 지켜내는 학생 대상 장학금', parent:true, reapply:true, recommender:'member',
+  C:{ code:'C', name:'정동 동행', desc:'삶의 무게가 버겁지만 교회의 자리를 묵묵히 지켜내는 학생 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
       sections:[ academic, condition,
         {title:'자기 소개', hint:'신앙 · 봉사 · 경제상황 등 지원 이유', fields:[
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:200},
           {id:'economy', label:'가정의 경제 상황', type:'textarea', req:true, min:100, help:'장학금이 필요한 사유를 구체적으로 적어 주세요. 위원회만 열람합니다.'}]} ],
       docs:['등록금고지서','재학증명서','가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  D:{ code:'D', name:'정동 비전', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member',
+  D:{ code:'D', name:'정동 비전', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
       sections:[
         {title:'인적·학적', hint:'학교명 · 학년 · 반 · 연락처', fields:[
           {id:'school', label:'학교명', type:'text', req:true, ph:'예: 배재고등학교'},
@@ -375,7 +383,12 @@ const TYPES = {
           {id:'intro', label:'[지원자] 지원 이유와 앞으로의 신앙·봉사 계획', type:'textarea', req:true, min:200},
           {id:'parentIntro', label:'[보호자] 자녀 소개', type:'textarea', req:true, min:150, help:'보호자께서 직접 작성해 주세요.'}]} ],
       docs:['가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  E:{ code:'E', name:'정동 동역', desc:'교역자가 온전히 사역에 전념할 수 있도록 교회가 함께 품어주는 자녀 대상 장학금', parent:false, reapply:false, recommender:'office', noEvals:true,
+  E:{ code:'E', name:'정동 봉사', desc:'보이지 않는 수고와 헌신으로 온 회중의 예배를 돕고 풍성한 은혜를 더하는 학생 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.choir,
+      sections:[ academic, condition,
+        {title:'자기 소개', hint:'신앙 · 봉사 등 지원 이유', fields:[
+          {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:200}]} ],
+      docs:['등록금고지서','재학증명서'] },
+  F:{ code:'F', name:'정동 동역', desc:'교역자가 온전히 사역에 전념할 수 있도록 교회가 함께 품어주는 자녀 대상 장학금', parent:false, reapply:false, recommender:'office', noEvals:true,
       note:'정동 동역 장학금은 교회 사무실에서 교역자 자녀임을 확인한 뒤 등록합니다.',
       sections:[ academic,
         {title:'장학생 조건', hint:'보호자 직분', fields:[
@@ -389,12 +402,12 @@ const REAPPLY_FIELD = {id:'testimony', label:'장학수여 간증문', type:'tex
 /* 추천 평가 — 주관식 6개 항목, 각 항목 공백 제외 100자 이상 */
 const EVAL_MIN = 100;
 const EVALS = [
-  {id:'attend',  name:'출석',        q:'주일예배와 소속 모임에 어떻게 출석하고 있는지 구체적으로 적어 주세요.', ph:'예) 최근 1년간 주일 1부 예배에 거의 빠지지 않았고, 매주 금요일 대학부 소그룹에도…'},
-  {id:'faith',   name:'신앙 태도',   q:'예배와 말씀에 임하는 자세를 보여 준 장면을 적어 주세요.', ph:'예) 큐티 나눔 시간에 늘 먼저 자기 이야기를 꺼내며…'},
-  {id:'service', name:'봉사 수준',   q:'맡은 역할과, 그 역할을 얼마나 꾸준하고 책임감 있게 감당했는지 적어 주세요.', ph:'예) 2년째 새가족팀에서 안내 데스크를 맡아…'},
-  {id:'bond',    name:'공동체 관계', q:'공동체 구성원과의 관계, 다른 사람을 섬긴 모습을 적어 주세요.', ph:'예) 조원이 결석하면 먼저 연락해 안부를 묻고…'},
-  {id:'growth',  name:'성장 가능성', q:'장학금을 받은 뒤 이 학생에게 기대되는 변화를 적어 주세요.', ph:'예) 아르바이트 시간을 줄이면 학업과 섬김에…'},
-  {id:'reason',  name:'추천 사유',   q:'이 학생을 장학생으로 추천하는 이유를 종합해 적어 주세요.', ph:'예) 위의 모습을 2년간 가까이에서 지켜본 사람으로서…'},
+  {id:'attend',  name:'출석',        q:'주일예배와 소속 모임에 어떻게 출석하고 있는지 구체적으로 적어 주세요.', ph:'예) 매주 주일 1부 예배에 참석하고 있으며, 특히 찬양팀 연습을 위해 예배 1시간 전인 오전 7시에 가장 먼저 도착하여...'},
+  {id:'faith',   name:'신앙 태도',   q:'예배와 말씀에 임하는 자세를 보여 준 장면을 적어 주세요.', ph:'예) 주일 예배 시 항상 앞자리에 앉고, 큐티 또는 삶을 나누는 시간에 늘 먼저 자기 이야기를 꺼내며…'},
+  {id:'service', name:'봉사 수준',   q:'맡은 역할과, 그 역할을 얼마나 꾸준하고 책임감 있게 감당했는지 적어 주세요.', ph:'예) 작예교사로 3년째 섬기며, 매주 미리 공과 공부를 완벽히 준비해 올 뿐만 아니라 반 아이들의 생일마다 직접 손편지를 써서 심방하는…'},
+  {id:'bond',    name:'공동체 관계', q:'공동체 구성원과의 관계, 다른 사람을 섬긴 모습을 적어 주세요.', ph:'예) 수련회 준비 과정에서 궂은일을 먼저 도맡아 하며, 의견 차이가 발생했을 때 양측의 의견을 경청하고 조율하여…'},
+  {id:'growth',  name:'성장 가능성', q:'장학금을 받은 뒤 이 학생에게 기대되는 변화를 적어 주세요.', ph:'예) 장학금 수혜로 경제활동의 부담을 덜게 된다면 전공 학업 성적 향상과 찬양팀 연습에 더욱 집중하여…'},
+  {id:'reason',  name:'추천 사유',   q:'이 학생을 장학생으로 추천하는 이유를 종합해 적어 주세요.', ph:'앞서 언급한 장점들을 종합하여, 이 학생이 왜 꼭 장학금을 받아야 하는지 추천인의 확신을 담아 마무리 해 주세요~'},
 ];
 const emptyEvals = () => Object.fromEntries(EVALS.map(e => [e.id, '']));
 const evalOk = (ev, id) => charCount(ev?.[id]) >= EVAL_MIN;
@@ -406,23 +419,23 @@ const STATUS = {WAIT:'수락·보완 대기 중', ACCEPT:'지원 수락', DECLIN
 /* =====================================================================
    1. 상태 저장소 (프로토타입: 메모리 + localStorage)
    ===================================================================== */
-const KEY = 'jd-scholar-proto-v4';
+const KEY = 'jd-scholar-proto-v5';
 const LONG = (a,b) => a + ' ' + b;
 const seed = () => ([
   {id:'REC-2026-0012', token:'t8k2qa', type:'C', createdAt:'2026-09-18',
    student:{name:'김하늘', birth:'2006-03-14', phone:'010-2345-6789', email:'sky@example.com'},
-   recommender:{name:'김은혜', dept:'청년부', title:'권사'},
+   recommender:{name:'김은혜', dept:'젊은이교회위원회', title:'권사'},
    evals:{attend:'하늘 학생은 최근 1년 동안 주일 2부 예배에 거의 빠지지 않았습니다. 아르바이트가 있는 주에도 예배를 먼저 드리고 일터로 가며, 금요일 청년부 소그룹에도 한 달에 세 번 이상 참석하고 있습니다. 결석할 때는 미리 리더에게 알리고 다음 주에 나눔 내용을 따로 챙겨 듣습니다.', faith:'소그룹 말씀 나눔 시간에 자신이 실패한 이야기까지 솔직하게 꺼내며 나눔의 문을 여는 학생입니다. 집안 형편이 어려워진 뒤에도 원망하기보다 감사 제목을 먼저 적어 오는 모습을 보며 리더인 저도 많이 배웠습니다. 매일 아침 성경 한 장 읽기를 1년째 이어가고 있습니다.', service:'2년째 청년부 새가족팀에서 섬기고 있습니다. 주일마다 예배 30분 전에 나와 안내 데스크를 지키고, 등록 후 3주 안에 새가족에게 직접 연락해 소그룹 연결까지 돕습니다. 올해만 열네 명의 새가족이 하늘 학생을 통해 소그룹에 정착했습니다.', bond:'지난 여름 수련회에서 조장을 맡아 조원 여섯 명을 끝까지 챙겼고, 수련회 이후에도 조원들과 매주 온라인 기도 모임을 이어가고 있습니다. 말을 앞세우기보다 먼저 연락하고 먼저 찾아가는 성품이라 또래뿐 아니라 선배들에게도 신뢰를 받고 있습니다.', growth:'현재 주중 아르바이트를 두 곳 하며 학비를 마련하고 있어 수업과 섬김 모두 시간이 빠듯합니다. 장학금으로 학비 부담이 줄어든다면 아르바이트 하나를 그만두고 학업에 집중하며, 새가족팀 차기 팀장 역할까지 감당할 수 있을 것이라 기대합니다.', reason:'하늘 학생은 2년째 청년부 새가족팀에서 섬기고 있습니다. 주일마다 예배 30분 전에 나와 새가족 안내 데스크를 지키고, 등록 후 3주 이내 새가족에게 직접 연락해 소그룹 연결까지 돕습니다. 올해 초 아버지의 사업이 어려워지면서 주중 아르바이트를 두 곳 하고 있는데도 섬김의 자리를 비운 적이 거의 없습니다. 지난 여름 수련회에서는 조장을 맡아 조원 여섯 명을 끝까지 챙겼고, 수련회 후에도 조원들과 기도 모임을 이어가고 있습니다. 학비 부담이 줄어든다면 아르바이트 시간을 줄이고 학업과 공동체 섬김에 더 집중할 수 있으리라 확신합니다.'},
    status:'WAIT', app:null},
   {id:'REC-2026-0011', token:'p3m9zx', type:'D', createdAt:'2026-09-16',
    student:{name:'박온유', birth:'2009-07-02', phone:'010-3456-7890', email:'onyu@example.com'},
-   recommender:{name:'박성실', dept:'고등부', title:'장로'},
+   recommender:{name:'박성실', dept:'드리밍스타', title:'장로'},
    evals:{attend:'온유 학생은 중등부 때부터 지금까지 주일 고등부 예배에 한 번도 빠지지 않았습니다. 시험 기간에도 예배를 먼저 드리고 공부하러 가며, 토요일 찬양팀 연습에도 가장 먼저 도착합니다. 출석부를 보면 지난 3년간 결석이 두 번뿐입니다. 공동체 안에서 성실함의 본보기가 되고 있습니다.', faith:'말수가 적지만 예배 시간에는 누구보다 진지하게 말씀을 듣고 노트에 적습니다. 수련회 때 처음으로 자기 신앙고백을 나누며 어려운 가정 형편 속에서도 하나님이 늘 함께하셨다고 고백해 많은 친구들이 함께 울었습니다. 꾸준히 기도 제목을 적어 오는 학생입니다.', service:'고등부 찬양팀에서 건반 반주를 맡고 있습니다. 매주 토요일 연습 전에 악보를 정리해 팀원들에게 나눠 주고, 반주자가 빠지는 날에는 다른 파트까지 대신 맡습니다. 1년 넘게 한 번도 연습에 빠지지 않아 교사들의 신뢰가 매우 큽니다. 맡은 일을 끝까지 책임지는 모습이 늘 한결같습니다.', bond:'후배들이 학교나 가정 문제로 힘들어할 때 조용히 옆에 앉아 이야기를 들어주는 모습을 여러 번 보았습니다. 새로 온 친구가 어색해하면 먼저 다가가 찬양팀 연습에 초대하기도 합니다. 친구들 사이에서 편안하고 믿을 수 있는 사람으로 통합니다.', growth:'어머니 혼자 세 남매를 키우고 계셔서 학원이나 교재 구입에 어려움이 있다고 들었습니다. 장학금이 학업을 이어가는 데 실질적인 힘이 되고, 무엇보다 공동체가 자신을 지켜보고 응원한다는 확신을 주어 더 당당하게 꿈을 키워 갈 것이라 기대합니다.', reason:'온유 학생은 중등부 때부터 한 번도 빠지지 않고 예배에 출석해 온 학생입니다. 고등부에 올라와서는 찬양팀 건반 반주를 맡았고, 매주 토요일 연습에 가장 먼저 와서 악보를 정리합니다. 말수가 적지만 후배들이 어려워할 때 조용히 옆에 앉아 이야기를 들어주는 모습을 여러 번 보았습니다. 어머니 혼자 세 남매를 키우고 계셔서 학원이나 교재 구입에 어려움이 있다고 들었습니다. 장학금이 학업을 이어가는 데 실질적인 힘이 되고, 온유 학생에게는 공동체가 자신을 지켜보고 응원한다는 확신이 될 것입니다.'},
    status:'ACCEPT', app:null,
    studentInput:{name:'박온유', birth:'2009-07-02', phone:'010-3456-7890', email:'onyu@example.com'}},
   {id:'REC-2026-0010', token:'k7r4ha', type:'A', createdAt:'2026-09-12',
    student:{name:'정은총', birth:'2001-05-09', phone:'010-6789-0123', email:'grace@example.com'},
-   recommender:{name:'최요한', dept:'신학생부', title:'담당목사'},
+   recommender:{name:'최요한', dept:'교육부', title:'담당목사'},
    status:'DONE',
    studentInput:{name:'정은총', birth:'2001-05-09', phone:'010-6789-0123', email:'grace@example.com'},
    app:{id:'APP-2026-0008', receipt:'JD-2026-2-0008', submittedAt:'2026-09-15', type:'A', reapply:false,
@@ -431,7 +444,7 @@ const seed = () => ([
      files:{'등록금고지서':'2026-2_등록금고지서_정은총.pdf','재학증명서':'재학증명서_정은총.pdf'}}},
   {id:'REC-2026-0009', token:'w1n5cd', type:'B', createdAt:'2026-09-10',
    student:{name:'이소망', birth:'2004-11-21', phone:'010-4567-8901', email:'hope@example.com'},
-   recommender:{name:'이믿음', dept:'대학부', title:'집사'},
+   recommender:{name:'이믿음', dept:'글로리아찬양대', title:'집사'},
    evals:{attend:'소망 학생은 대학부 주일예배와 금요 예배팀 모임에 1년 반 동안 거의 빠지지 않았습니다. 시험 기간에도 예배 인도 순서가 있으면 미리 준비해 두고 자리를 지켰습니다. 결석하게 될 때는 대체 인원을 직접 세우고 연습 자료까지 넘겨줍니다. 공동체 안에서 성실함의 본보기가 되고 있습니다.', faith:'예배팀 리더로서 콘티를 짤 때 본문 말씀을 먼저 묵상하고 그에 맞는 찬양을 고릅니다. 팀원들에게 실력보다 마음을 먼저 준비하자고 늘 이야기하며, 금요일 연습은 항상 기도로 시작합니다. 말씀을 삶에 적용하려는 태도가 분명한 학생입니다.', service:'대학부 예배팀 리더로 1년 반째 섬기고 있습니다. 매주 콘티를 준비하고 팀원들과 금요일마다 모여 기도와 연습을 인도합니다. 올해 봄 팀원이 절반으로 줄었을 때 직접 신입생들을 찾아가 초대하고 기초부터 가르쳐 지금은 열두 명이 되었습니다.', bond:'새로 들어온 팀원 한 사람 한 사람과 따로 식사하며 이야기를 듣는 리더입니다. 팀 안에 갈등이 생겼을 때도 양쪽 이야기를 차분히 듣고 화해를 이끌었습니다. 대학부 임원들도 어려운 결정을 할 때 소망 학생의 의견을 꼭 묻습니다. 공동체 안에서 관계의 다리 역할을 하고 있습니다.', growth:'지난 학기 장학금을 받은 뒤 교내 근로 시간을 줄이고 예배 준비와 학업에 더 많은 시간을 쓰고 있다고 들었습니다. 다시 장학금을 받는다면 후임 리더 두 명을 세우는 일까지 마무리하고, 졸업 후에도 교회 교육 현장에서 섬길 것이라 기대합니다. 공동체도 그 성장을 함께 지켜보며 응원할 것입니다.', reason:'소망 학생은 대학부 예배팀 리더로 1년 반째 섬기고 있습니다. 매주 콘티를 준비하고 팀원들과 금요일마다 모여 기도와 연습을 인도합니다. 올해 봄에는 예배팀 인원이 절반으로 줄어 어려운 시기가 있었는데, 소망 학생이 직접 신입생들을 찾아가 초대하고 기초부터 가르쳐 지금은 팀이 다시 열두 명이 되었습니다. 지난 학기 장학금을 받은 뒤로는 교내 근로 시간을 줄이고 예배 준비에 더 많은 시간을 쓰고 있다고 들었습니다. 성실함과 책임감이 공동체 안에서 이미 증명된 학생이기에 다시 추천합니다.'},
    status:'DONE',
    studentInput:{name:'이소망', birth:'2004-11-21', phone:'010-4567-8901', email:'hope@example.com'},
@@ -511,7 +524,7 @@ function renderRecommend(){
   <div class="grid">
     <form class="card" id="recForm" novalidate>
       <section class="sec" data-s="1">
-        <div class="sec-h"><div class="num">01</div><div><h2>학생 기본정보</h2><p>학생에게 추천 알림과 지원서 링크가 발송될 연락처입니다.</p></div></div>
+        <div class="sec-h"><div class="num">01</div><div><h2>추천 학생 기본정보</h2><p>학생에게 추천 알림과 지원서 링크가 발송될 연락처입니다.</p></div></div>
         <div class="row">
           <label class="f"><span>성명<em>*</em></span><input type="text" data-k="student.name" value="${esc(R.student.name)}" placeholder="홍길동" autocomplete="off"></label>
           <label class="f"><span>생년월일<em>*</em></span><input type="date" data-k="student.birth" value="${esc(R.student.birth)}"></label>
@@ -520,7 +533,7 @@ function renderRecommend(){
         </div>
         <div class="consent">
           수집 항목: 성명, 생년월일, 연락처, 이메일 · 이용 목적: 장학생 추천 알림 및 지원서 작성 안내 · 보유 기간: 장학 심사 종료 후 1년
-          <label class="check"><input type="checkbox" data-k="consent" ${R.consent?'checked':''}> 학생의 개인정보 수집·이용에 동의하며, 학생 본인에게 사전 고지했습니다.</label>
+          <label class="check"><input type="checkbox" data-k="consent" ${R.consent?'checked':''}> 추천 학생의 개인정보 수집·이용에 동의하며, 학생 본인에게 사전 고지했습니다.</label>
         </div>
       </section>
 
@@ -553,7 +566,7 @@ function renderRecommend(){
   // 바인딩
   $$('[data-k]', app).forEach(bindInput);
   $$('.type', app).forEach(el => {
-    const pick = () => { if(R.type !== el.dataset.type){ R.type = el.dataset.type; R.officeOk=false; } renderRecommendDynamic(); $$('.type').forEach(x=>x.setAttribute('aria-checked', x.dataset.type===R.type)); };
+    const pick = () => { if(R.type !== el.dataset.type){ R.type = el.dataset.type; R.officeOk=false; if(!(TYPES[R.type].depts||[]).includes(R.rec.dept)) R.rec.dept=''; } renderRecommendDynamic(); $$('.type').forEach(x=>x.setAttribute('aria-checked', x.dataset.type===R.type)); };
     el.addEventListener('click', e => { e.preventDefault(); pick(); });
     el.addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter'){ e.preventDefault(); pick(); } });
   });
@@ -581,17 +594,17 @@ function renderRecommendDynamic(){
   if(t && t.recommender === 'office'){
     s3.innerHTML = `
       <div class="sec-h"><div class="num">03</div><div><h2>교회사무실 확인</h2><p>${t.note}</p></div></div>
-      <label class="check"><input type="checkbox" id="officeOk" ${R.officeOk?'checked':''}> 교회사무실 담당자로서 학생이 교역자·사역자·선교사의 자녀임을 확인했습니다.</label>`;
+      <label class="check"><input type="checkbox" id="officeOk" ${R.officeOk?'checked':''}> 교회사무실 담당자로서 추천 학생이 교역자·사역자·선교사의 자녀임을 확인했습니다.</label>`;
     s4.innerHTML = `<div class="sec-h"><div class="num">04</div><div><h2>추천 사유</h2><p>${t.name} 장학금은 추천 사유 작성을 생략합니다.</p></div></div>`;
     $('#officeOk').onchange = e => { R.officeOk = e.target.checked; updateRecommendChecks(); };
   } else {
     const pastorOnly = t && t.recommender === 'pastor';
     s3.innerHTML = `
       <div class="sec-h"><div class="num">03</div><div><h2>추천인 정보</h2>
-        <p>${pastorOnly ? `${t.name} 장학금은 <b>소속 담당 목사</b>가 추천합니다.` : '추천인의 소속 부서와 직분을 적어 주세요. <b>교역자와 사역자는 추천인이 될 수 없습니다.</b>'}</p></div></div>
+        <p>${pastorOnly ? `${t.name} 장학금은 <b>소속 담당 목사</b>가 추천합니다.` : '추천인의 소속 부서를 선택하고 직분을 적어 주세요. <b>교역자와 사역자는 추천인이 될 수 없습니다.</b>'}</p></div></div>
       <div class="row three">
         <label class="f"><span>추천인 성명<em>*</em></span><input type="text" data-k="rec.name" value="${esc(R.rec.name)}" autocomplete="off"></label>
-        <label class="f"><span>소속 부서<em>*</em></span><input type="text" data-k="rec.dept" value="${esc(R.rec.dept)}" placeholder="예: 청년부"></label>
+        <label class="f"><span>소속 부서<em>*</em></span><select data-k="rec.dept"><option value="">부서 선택</option>${(t?.depts||[]).map(d => `<option ${R.rec.dept===d?'selected':''}>${d}</option>`).join('')}</select></label>
         <label class="f"><span>직분<em>*</em></span><input type="text" data-k="rec.title" value="${esc(R.rec.title)}" placeholder="${pastorOnly?'예: 담당목사':'예: 권사'}"></label>
       </div>
       <p class="hint">입력한 추천인 정보는 장학사업위원회가 심사 단계에서 확인합니다.</p>`;
@@ -599,7 +612,7 @@ function renderRecommendDynamic(){
       ? `<div class="sec-h"><div class="num">04</div><div><h2>추천 사유</h2><p>${t.name} 장학금은 담당 목사의 추천을 승인에 준하여 관리하므로 추천 사유 작성을 생략합니다.</p></div></div>`
       : `
       <div class="sec-h"><div class="num">04</div><div><h2>추천 사유</h2><p>여섯 개 항목마다 학생을 가까이서 본 사람만 쓸 수 있는 구체적인 장면을 적어 주세요. 이 내용은 학생에게 공개되지 않습니다.</p></div></div>
-      <div class="warnbox"><b>!</b><div>내용이 모호하거나 형식적이면 <b>심사에서 감점되거나 탈락할 수 있습니다.</b> 항목마다 공백 제외 ${EVAL_MIN}자 이상 작성해야 제출할 수 있습니다.</div></div>
+      <div class="warnbox"><b>!</b><div>추천자의 개인적인 느낌 또는 모호한 내용 보다 <b>실제 있었던 일 또는 평소에 보았던 모습으로 구체적으로 작성해주셔야 심사에 도움이 됩니다.</b> 항목마다 공백 제외 ${EVAL_MIN}자 이상 작성해야 제출할 수 있습니다.</div></div>
       <div class="evals">${EVALS.map((e,i) => `
         <div class="ev" id="ev-${e.id}">
           <label class="f"><span><i class="ev-n">${i+1}</i>${e.name}<em>*</em></span><small style="margin:0 0 8px">${e.q}</small>
@@ -627,7 +640,7 @@ const recFilled = () => ['name','dept','title'].every(k => R.rec[k].trim());
 function recommendChecks(){
   const s = R.student, t = TYPES[R.type];
   const list = [
-    ['학생 기본정보', s.name.trim() && s.birth && /^01\d-?\d{3,4}-?\d{4}$/.test(s.phone.trim()) && /\S+@\S+\.\S+/.test(s.email)],
+    ['추천 학생 기본정보', s.name.trim() && s.birth && /^01\d-?\d{3,4}-?\d{4}$/.test(s.phone.trim()) && /\S+@\S+\.\S+/.test(s.email)],
     ['개인정보 수집·이용 동의', R.consent],
     ['장학금 선택', !!t],
   ];
@@ -686,7 +699,7 @@ function submitRecommendation(){
         <p style="margin:0;color:var(--ink-2);font-size:14px">지원 현황에 <b>${STATUS.WAIT}</b> 상태로 등록되었습니다. 위원회가 학생과 보호자에게 오른쪽 알림을 보냅니다.</p>
         <dl class="kv">
           <dt>추천서 ID</dt><dd class="mono">${rec.id}</dd>
-          <dt>학생</dt><dd>${esc(rec.student.name)} · ${esc(rec.student.phone)}</dd>
+          <dt>추천 학생</dt><dd>${esc(rec.student.name)} · ${esc(rec.student.phone)}</dd>
           <dt>장학금</dt><dd>유형 ${t.code} ${t.name}</dd>
           <dt>학생 공개 범위</dt><dd><span class="lock">🔒</span> 추천 사실·추천인 이름만 공개 (평가·사유 비공개)</dd>
         </dl>
@@ -731,7 +744,7 @@ function renderBoard(){
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>추천서 ID</th><th>학생</th><th>장학금</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
+      <thead><tr><th>추천서 ID</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="mono">${r.id}<div style="color:var(--ink-3);font-size:11px">${r.createdAt}</div></td>
         <td><b>${esc(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${esc(r.student.phone)}</div></td>
@@ -796,7 +809,7 @@ function renderReview(){
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>통합 접수번호</th><th>학생</th><th>장학금</th><th>추천인</th><th>추천 사유</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
+      <thead><tr><th>통합 접수번호</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>추천 사유</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
       <tbody>${rows.map(r => { const d = docsOf(r); return `<tr>
         <td class="mono">${r.app?.receipt || '<span style="color:var(--ink-3)">미발급</span>'}<div style="color:var(--ink-3);font-size:11px">${r.id}${r.app?' + '+r.app.id:''}</div></td>
         <td><b>${nm(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${r.student.birth.slice(0,4)}년생</div></td>
@@ -887,7 +900,7 @@ function renderReviewDetail(id){
     <div class="segs" role="radiogroup" aria-label="심사 결정">
       ${Object.entries(DECISION).map(([k,v])=>`<label class="seg"><input type="radio" name="dec" value="${k}" ${rv.decision===k?'checked':''}><span>${v}</span></label>`).join('')}
     </div>
-    <label class="f"><span>심사 메모</span><textarea id="memo" placeholder="예) 6개 항목 모두 구체적. 증빙 서류 확인 완료.">${esc(rv.memo)}</textarea></label>
+    <label class="f"><span>심사 메모</span><textarea id="memo" placeholder="예) 6개 항목 모두 구체적. 제출서류 확인 완료.">${esc(rv.memo)}</textarea></label>
     <div class="foot">
       <button class="btn btn-brick" id="saveRv" ${app || office ? '' : 'disabled'}>심사 결정 저장</button>
       <button class="btn btn-ghost" onclick="window.print()">인쇄</button>
@@ -909,7 +922,7 @@ function exportExcel(){
   const nm = n => blind ? mask(n) : n;
   const s1 = rows.map(r => { const d = docsOf(r), ev = hasEvals(r); return {
     '통합 접수번호': r.app?.receipt || '', '추천서 ID': r.id, '지원서 ID': r.app?.id || '',
-    '장학금': `${r.type} ${TYPES[r.type].name}`, '학생': nm(r.student.name), '생년월일': r.student.birth,
+    '장학금': `${r.type} ${TYPES[r.type].name}`, '추천 학생': nm(r.student.name), '생년월일': r.student.birth,
     '연락처': blind ? '' : r.student.phone, '이메일': blind ? '' : r.student.email,
     '추천인': nm(r.recommender.name), '추천인 소속': r.recommender.dept, '추천인 직분': r.recommender.title, '추천일': r.createdAt,
     '추천 사유 작성': ev ? `${evalDone(r.evals)}/${EVALS.length}` : '', '추천 사유 분량(자)': ev ? evalChars(r.evals) : '',
@@ -919,7 +932,7 @@ function exportExcel(){
     '진행 상태': STATUS[r.status], '지원서 제출일': r.app?.submittedAt || '',
     '심사 결정': DECISION[decisionOf(r)], '심사 메모': r.review?.memo || '' }; });
   const s2 = rows.filter(hasEvals).map(r => ({
-    '추천서 ID': r.id, '학생': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
+    '추천서 ID': r.id, '추천 학생': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
     ...Object.fromEntries(EVALS.map(e => [e.name, r.evals?.[e.id] || ''])),
     '총 분량(공백 제외)': evalChars(r.evals) }));
   const s3 = Object.values(TYPES).map(t => { const g = DB.filter(r=>r.type===t.code); return {
