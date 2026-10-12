@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -524,7 +525,7 @@ function renderRecommend(){
   <div class="grid">
     <form class="card" id="recForm" novalidate>
       <section class="sec" data-s="1">
-        <div class="sec-h"><div class="num">01</div><div><h2>피추천인 기본정보</h2><p>학생에게 추천 알림과 지원서 링크가 발송될 연락처입니다.</p></div></div>
+        <div class="sec-h"><div class="num">01</div><div><h2>추천 학생 기본정보</h2><p>학생에게 추천 알림과 지원서 링크가 발송될 연락처입니다.</p></div></div>
         <div class="row">
           <label class="f"><span>성명<em>*</em></span><input type="text" data-k="student.name" value="${esc(R.student.name)}" placeholder="홍길동" autocomplete="off"></label>
           <label class="f"><span>생년월일<em>*</em></span><input type="date" data-k="student.birth" value="${esc(R.student.birth)}"></label>
@@ -533,7 +534,7 @@ function renderRecommend(){
         </div>
         <div class="consent">
           수집 항목: 성명, 생년월일, 연락처, 이메일 · 이용 목적: 장학생 추천 알림 및 지원서 작성 안내 · 보유 기간: 장학 심사 종료 후 1년
-          <label class="check"><input type="checkbox" data-k="consent" ${R.consent?'checked':''}> 피추천인의 개인정보 수집·이용에 동의하며, 학생 본인에게 사전 고지했습니다.</label>
+          <label class="check"><input type="checkbox" data-k="consent" ${R.consent?'checked':''}> 추천 학생의 개인정보 수집·이용에 동의하며, 학생 본인에게 사전 고지했습니다.</label>
         </div>
       </section>
 
@@ -594,7 +595,7 @@ function renderRecommendDynamic(){
   if(t && t.recommender === 'office'){
     s3.innerHTML = `
       <div class="sec-h"><div class="num">03</div><div><h2>교회사무실 확인</h2><p>${t.note}</p></div></div>
-      <label class="check"><input type="checkbox" id="officeOk" ${R.officeOk?'checked':''}> 교회사무실 담당자로서 피추천인이 교역자·사역자·선교사의 자녀임을 확인했습니다.</label>`;
+      <label class="check"><input type="checkbox" id="officeOk" ${R.officeOk?'checked':''}> 교회사무실 담당자로서 추천 학생이 교역자·사역자·선교사의 자녀임을 확인했습니다.</label>`;
     s4.innerHTML = `<div class="sec-h"><div class="num">04</div><div><h2>추천 사유</h2><p>${t.name} 장학금은 추천 사유 작성을 생략합니다.</p></div></div>`;
     $('#officeOk').onchange = e => { R.officeOk = e.target.checked; updateRecommendChecks(); };
   } else {
@@ -640,7 +641,7 @@ const recFilled = () => ['name','dept','title'].every(k => R.rec[k].trim());
 function recommendChecks(){
   const s = R.student, t = TYPES[R.type];
   const list = [
-    ['피추천인 기본정보', s.name.trim() && s.birth && /^01\d-?\d{3,4}-?\d{4}$/.test(s.phone.trim()) && /\S+@\S+\.\S+/.test(s.email)],
+    ['추천 학생 기본정보', s.name.trim() && s.birth && /^01\d-?\d{3,4}-?\d{4}$/.test(s.phone.trim()) && /\S+@\S+\.\S+/.test(s.email)],
     ['개인정보 수집·이용 동의', R.consent],
     ['장학금 선택', !!t],
   ];
@@ -699,7 +700,7 @@ function submitRecommendation(){
         <p style="margin:0;color:var(--ink-2);font-size:14px">지원 현황에 <b>${STATUS.WAIT}</b> 상태로 등록되었습니다. 위원회가 학생과 보호자에게 오른쪽 알림을 보냅니다.</p>
         <dl class="kv">
           <dt>추천서 ID</dt><dd class="mono">${rec.id}</dd>
-          <dt>피추천인</dt><dd>${esc(rec.student.name)} · ${esc(rec.student.phone)}</dd>
+          <dt>추천 학생</dt><dd>${esc(rec.student.name)} · ${esc(rec.student.phone)}</dd>
           <dt>장학금</dt><dd>유형 ${t.code} ${t.name}</dd>
           <dt>학생 공개 범위</dt><dd><span class="lock">🔒</span> 추천 사실·추천인 이름만 공개 (평가·사유 비공개)</dd>
         </dl>
@@ -744,7 +745,7 @@ function renderBoard(){
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>추천서 ID</th><th>피추천인</th><th>장학금</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
+      <thead><tr><th>추천서 ID</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
         <td class="mono">${r.id}<div style="color:var(--ink-3);font-size:11px">${r.createdAt}</div></td>
         <td><b>${esc(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${esc(r.student.phone)}</div></td>
@@ -809,7 +810,7 @@ function renderReview(){
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>통합 접수번호</th><th>피추천인</th><th>장학금</th><th>추천인</th><th>추천 사유</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
+      <thead><tr><th>통합 접수번호</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>추천 사유</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
       <tbody>${rows.map(r => { const d = docsOf(r); return `<tr>
         <td class="mono">${r.app?.receipt || '<span style="color:var(--ink-3)">미발급</span>'}<div style="color:var(--ink-3);font-size:11px">${r.id}${r.app?' + '+r.app.id:''}</div></td>
         <td><b>${nm(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${r.student.birth.slice(0,4)}년생</div></td>
@@ -900,7 +901,7 @@ function renderReviewDetail(id){
     <div class="segs" role="radiogroup" aria-label="심사 결정">
       ${Object.entries(DECISION).map(([k,v])=>`<label class="seg"><input type="radio" name="dec" value="${k}" ${rv.decision===k?'checked':''}><span>${v}</span></label>`).join('')}
     </div>
-    <label class="f"><span>심사 메모</span><textarea id="memo" placeholder="예) 6개 항목 모두 구체적. 가계곤란 증빙 확인 완료.">${esc(rv.memo)}</textarea></label>
+    <label class="f"><span>심사 메모</span><textarea id="memo" placeholder="예) 6개 항목 모두 구체적. 제출서류 확인 완료.">${esc(rv.memo)}</textarea></label>
     <div class="foot">
       <button class="btn btn-brick" id="saveRv" ${app || office ? '' : 'disabled'}>심사 결정 저장</button>
       <button class="btn btn-ghost" onclick="window.print()">인쇄</button>
@@ -922,7 +923,7 @@ function exportExcel(){
   const nm = n => blind ? mask(n) : n;
   const s1 = rows.map(r => { const d = docsOf(r), ev = hasEvals(r); return {
     '통합 접수번호': r.app?.receipt || '', '추천서 ID': r.id, '지원서 ID': r.app?.id || '',
-    '장학금': `${r.type} ${TYPES[r.type].name}`, '피추천인': nm(r.student.name), '생년월일': r.student.birth,
+    '장학금': `${r.type} ${TYPES[r.type].name}`, '추천 학생': nm(r.student.name), '생년월일': r.student.birth,
     '연락처': blind ? '' : r.student.phone, '이메일': blind ? '' : r.student.email,
     '추천인': nm(r.recommender.name), '추천인 소속': r.recommender.dept, '추천인 직분': r.recommender.title, '추천일': r.createdAt,
     '추천 사유 작성': ev ? `${evalDone(r.evals)}/${EVALS.length}` : '', '추천 사유 분량(자)': ev ? evalChars(r.evals) : '',
@@ -932,7 +933,7 @@ function exportExcel(){
     '진행 상태': STATUS[r.status], '지원서 제출일': r.app?.submittedAt || '',
     '심사 결정': DECISION[decisionOf(r)], '심사 메모': r.review?.memo || '' }; });
   const s2 = rows.filter(hasEvals).map(r => ({
-    '추천서 ID': r.id, '피추천인': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
+    '추천서 ID': r.id, '추천 학생': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
     ...Object.fromEntries(EVALS.map(e => [e.name, r.evals?.[e.id] || ''])),
     '총 분량(공백 제외)': evalChars(r.evals) }));
   const s3 = Object.values(TYPES).map(t => { const g = DB.filter(r=>r.type===t.code); return {
