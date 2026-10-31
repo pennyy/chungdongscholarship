@@ -2,7 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>정동제일교회 장학생 추천 발의 · 프로토타입</title>
+<title>정동제일교회 장학생 온라인 지원</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
@@ -218,6 +218,13 @@ table.board{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:60;box-shadow:var(--shadow);animation:fi .25s ease both;max-width:90vw}
 .toast b{color:var(--gold);font-family:var(--mono)}
 .empty{text-align:center;padding:48px 20px;color:var(--ink-2)}
+.authbox{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px}
+.authbox b{color:#fff;font-family:var(--mono);font-weight:500;font-size:12.5px}
+.authbox b.cm{color:var(--gold)}
+.grp{font-size:12px;color:var(--ink-2);font-weight:700;align-self:center;margin-right:2px;white-space:nowrap}
+.authbox .tab{color:#AEB6BD}
+.login-wrap{max-width:460px;margin:56px auto 0}
+@media (max-width:820px){.authbox{margin-left:0;width:100%;justify-content:flex-end;padding-bottom:6px}}
 
 /* ───────── 화면 4 · 위원회 심사 ───────── */
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
@@ -310,14 +317,13 @@ table.board{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand"><b>정동 장학</b><span>추천인 발의형 온라인 지원</span></div>
-    <span class="proto-flag">PROTOTYPE</span>
+    <div class="brand"><b>정동제일교회 장학사업위원회</b><span>장학생 온라인 지원</span></div>
     <nav class="tabs" aria-label="화면 전환">
-      <button class="tab" data-go="recommend">추천 발의</button>
-      <button class="tab" data-go="board">진행 현황</button>
-      <button class="tab" data-go="student">학생 화면</button>
-      <button class="tab" data-go="review">위원회 심사</button>
+      <button class="tab" data-go="recommend">장학생 추천</button>
+      <button class="tab" data-go="student">학생 지원</button>
+      <button class="tab" data-go="review">장학생 심사</button>
     </nav>
+    <span class="authbox" id="authBox"></span>
   </div>
 </header>
 <main id="app"></main>
@@ -367,7 +373,7 @@ const TYPES = {
           {id:'intro', label:'지원 이유와 앞으로 계획하고 있는 신앙 또는 봉사활동', type:'textarea', req:true, min:200},
           {id:'economy', label:'가정의 경제 상황', type:'textarea', req:true, min:100, help:'장학금이 필요한 사유를 구체적으로 적어 주세요. 위원회만 열람합니다.'}]} ],
       docs:['등록금고지서','재학증명서','가족관계증명서','건강보험료 납부확인서(부)','건강보험료 납부확인서(모)'] },
-  D:{ code:'D', name:'정동 비전(고등학생)', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
+  D:{ code:'D', name:'정동 비전', desc:'무한한 가능성을 기대하며 현실적 지원이 필요한 청소년 대상 장학금', parent:true, reapply:true, recommender:'member', depts:DEPTS.member,
       sections:[
         {title:'인적·학적', hint:'학교명 · 학년 · 반 · 연락처', fields:[
           {id:'school', label:'학교명', type:'text', req:true, ph:'예: 배재고등학교'},
@@ -419,7 +425,7 @@ const STATUS = {WAIT:'수락·보완 대기 중', ACCEPT:'지원 수락', DECLIN
 /* =====================================================================
    1. 상태 저장소 (프로토타입: 메모리 + localStorage)
    ===================================================================== */
-const KEY = 'jd-scholar-proto-v5';
+const KEY = 'jd-scholar-proto-v6';
 const LONG = (a,b) => a + ' ' + b;
 const seed = () => ([
   {id:'REC-2026-0012', token:'t8k2qa', type:'C', createdAt:'2026-09-18',
@@ -459,6 +465,103 @@ let DB;
 try{ DB = JSON.parse(localStorage.getItem(KEY)) || seed(); }catch(e){ DB = seed(); }
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} };
 
+/* 위원회 계정 — CDCS_01~20 / 202601CDCS~202620CDCS (번호가 서로 대응)
+   실제 배포에서는 서버에서 검증해야 합니다. 브라우저의 이 장벽은 UI 보호용입니다. */
+const ACCOUNTS = Array.from({length:20},(_,i)=>({ id:`CDCS_${String(i+1).padStart(2,'0')}`, pw:`2026${String(i+1).padStart(2,'0')}CDCS` }));
+let AUTH = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':auth')) }catch(e){} return null; })();
+const saveAuth = () => { try{ localStorage.setItem(KEY+':auth', JSON.stringify(AUTH)) }catch(e){} };
+
+/* =====================================================================
+   교회홈페이지(chungdong.org) SSO 연동
+   ---------------------------------------------------------------------
+   실제 배포 시에는 아래의 ssoInit / ssoLogin / ssoLogout / ssoSession 네 곳만
+   홈페이지의 인증 방식에 맞게 채우면 됩니다. 그 외 화면 코드는 SITE 객체만
+   바라보므로 바꿀 필요가 없습니다.
+
+   사이트별 흔한 방식 세 가지 중 하나를 골라 구현합니다.
+   (a) OAuth 2.0 / OIDC 리디렉션 (가장 일반적)
+       → ssoLogin()에서 홈페이지 인증 페이지로 이동하고,
+         본 파일이 콜백 URL(#sso-callback)로 다시 열릴 때 ssoInit()이 code를
+         서버 API로 바꿔 세션을 받아옵니다. (token 교환은 서버에서 수행)
+   (b) 홈페이지 세션 쿠키 + 서버 확인 API
+       → ssoInit()에서 /api/auth/me 같은 엔드포인트를 호출해 로그인 여부를 확인
+   (c) iframe/팝업으로 홈페이지 로그인 폼을 그대로 불러오는 방식
+       → renderSiteLogin()이 iframe을 표시하도록 바꿉니다.
+
+   프로토타입 모드(SSO_MODE='demo')에서는 아이디 입력만으로 로그인됩니다.
+   실제 연동 시 SSO_CONFIG를 채우고 SSO_MODE를 'oauth' 또는 'api'로 바꾸세요.
+   ===================================================================== */
+const SSO_CONFIG = {
+  mode: 'demo',                                   // 'demo' | 'oauth' | 'api'
+  homepageUrl: 'https://www.chungdong.org',       // 교회홈페이지 주소
+  authorizeUrl: '',                               // (a) 홈페이지 로그인/동의 화면 URL
+  clientId: '',                                   // (a) 홈페이지에서 발급받은 클라이언트 ID
+  redirectUri: '',                                // (a) 콜백 주소 — 이 서비스가 배포된 URL
+  checkUrl: '',                                   // (b) 로그인 세션 확인 API (GET → {id, name, ...})
+  callbackUrl: ''                                 // (a) code → 세션 교환 서버 API (POST)
+};
+let SITE = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':site')) }catch(e){} return null; })();
+const saveSite = () => { try{ localStorage.setItem(KEY+':site', JSON.stringify(SITE)) }catch(e){} };
+
+/* 세션 초기화 — 페이지가 열릴 때 호출됩니다.
+   (a) URL에 ?code= / #sso-callback 가 있으면 서버 API로 세션 교환
+   (b) 홈페이지 세션 쿠키가 있으면 checkUrl 로 확인
+   아래의 TODO 자리에 실제 호출을 채워 넣으세요. */
+async function ssoInit(){
+  if(SSO_CONFIG.mode === 'demo') return;                       // 데모: 수동 로그인 유지
+  try{
+    const url = new URL(location.href);
+    const code = url.searchParams.get('code') || (location.hash.match(/#sso-callback\b/) ? url.searchParams.get('code') : null);
+    if(code && SSO_CONFIG.callbackUrl){                        // (a) TODO: 서버에서 code→세션 교환
+      // const res = await fetch(SSO_CONFIG.callbackUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code})});
+      // const session = await res.json();
+      // if(session?.id){ SITE = {id:session.id, name:session.name, via:'sso'}; saveSite(); history.replaceState(null,'',location.pathname); }
+      return;
+    }
+    if(SSO_CONFIG.checkUrl){                                   // (b) TODO: 세션 확인
+      // const res = await fetch(SSO_CONFIG.checkUrl, {credentials:'include'});
+      // const session = await res.json();
+      // if(session?.id){ SITE = {id:session.id, name:session.name, via:'sso'}; saveSite(); }
+    }
+  }catch(e){ console.warn('[SSO] 세션 확인 실패', e); }
+}
+
+/* 로그인 시작 — 홈페이지 인증으로 보냅니다. (a) 방식 예시
+   redirectUri 는 배포 URL로 SSO_CONFIG에 채워야 합니다. */
+function ssoLogin(){
+  if(SSO_CONFIG.mode !== 'oauth' || !SSO_CONFIG.authorizeUrl) return false;   // 미설정 → 데모 로그인 폼 사용
+  const u = new URL(SSO_CONFIG.authorizeUrl);
+  u.searchParams.set('client_id', SSO_CONFIG.clientId);
+  u.searchParams.set('redirect_uri', SSO_CONFIG.redirectUri);
+  u.searchParams.set('response_type', 'code');
+  u.searchParams.set('state', Math.random().toString(36).slice(2));            // TODO: CSRF 방지 state 검증 추가
+  location.href = u.toString();
+  return true;
+}
+
+/* 로그아웃 — 서비스 세션만 지우고, 필요하면 홈페이지 로그아웃도 함께 처리 */
+function ssoLogout(){
+  if(SITE?.via === 'sso' && SSO_CONFIG.homepageUrl){
+    // TODO: 홈페이지 로그아웃 정책에 맞게 — 보통은 홈페이지 로그아웃 페이지로 보내거나 그냥 두기
+    // location.href = SSO_CONFIG.homepageUrl + '/logout?return=' + encodeURIComponent(location.origin);
+  }
+}
+
+/* 마이페이지 등에서 현재 사용자 표시에 쓸 수 있는 형태 */
+const ssoSession = () => SITE ? {id:SITE.id, name:SITE.name || SITE.id, via:SITE.via || 'demo'} : null;
+
+/* 구글드라이브 연동 — 관리자 설정 + 저장소 시뮬레이션
+   실제 배포: 이 지점(drivePut)을 서버 API(구글 드라이브 OAuth/서비스 계정) 호출로 바꿉니다.
+   DRIVE.account 에 관리자가 지정한 구글 계정, DRIVE.folder 에 상위 폴더를 저장합니다. */
+let DRIVE = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':drive')) }catch(e){} return null; })() || {enabled:false, account:'', folder:'정동장학', files:[]};
+const saveDrive = () => { try{ localStorage.setItem(KEY+':drive', JSON.stringify(DRIVE)) }catch(e){} };
+const driveReady = () => DRIVE.enabled && /\S+@\S+\.\S+/.test(DRIVE.account);
+function drivePut(folder, name, kind, note=''){
+  DRIVE.files.unshift({folder, name, kind, note, at:new Date().toLocaleString('ko-KR',{hour12:false})});
+  DRIVE.files = DRIVE.files.slice(0,200); saveDrive();
+  return driveReady();
+}
+
 /* 학생에게 전달되는 투영(projection) — 추천 사유(6개 평가 항목)를 제거한다.
    실제 구현에서는 서버 API가 이 필드를 아예 응답하지 않아야 합니다(Read-Only 차단). */
 function studentView(rec){
@@ -483,14 +586,70 @@ const sealSVG = `<svg class="seal" viewBox="0 0 64 64" aria-hidden="true">
   <circle cx="32" cy="32" r="17" fill="none" stroke="#B85444" stroke-width="1.5"/>
   <path d="M32 21v22M24 29h16" stroke="#F1D9D3" stroke-width="3" stroke-linecap="round"/></svg>`;
 
+function paintAuth(){
+  const el = $('#authBox'); if(!el) return;
+  el.innerHTML = (SITE
+    ? `<b>${esc(SITE.id)}</b><button class="tab" id="siteOut">홈페이지 로그아웃</button>`
+    : `<button class="tab" id="siteIn">홈페이지 로그인</button>`)
+    + (AUTH ? `<b class="cm">위원회 ${esc(AUTH.id)}</b>` : '');
+  if($('#siteOut')) $('#siteOut').onclick = () => { SITE = null; AUTH = null; saveSite(); saveAuth(); ssoLogout(); route(); };
+  if($('#siteIn')) $('#siteIn').onclick = () => { route(); };
+}
+function renderSiteLogin(){
+  $('#app').innerHTML = `
+  <div class="login-wrap">
+    <div class="card" style="padding:30px 32px">
+      <div class="eyebrow">정동제일교회 · chungdong.org</div>
+      <h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px">교회홈페이지 로그인</h2>
+      <p class="hint" style="margin:0 0 6px">온라인 장학 서비스(장학생 추천·지원·심사)는 교회홈페이지에 로그인한 후 이용할 수 있습니다.</p>
+      <p class="hint" style="margin:0 0 18px">프로토타입 · 아이디만 입력하면 홈페이지에 로그인된 것으로 처리합니다. 실제 운영에서는 위의 SSO_CONFIG를 채워 교회홈페이지(chungdong.org)와 연동합니다.</p>
+      <label class="f"><span>아이디</span><input type="text" id="siteId" autocomplete="username"></label>
+      <label class="f" style="margin-top:12px"><span>비밀번호</span><input type="password" id="sitePw" autocomplete="current-password"></label>
+      <div class="verify" id="siteState" style="margin:12px 0 0"></div>
+      <button class="btn btn-ink" id="siteBtn" style="width:100%;justify-content:center;margin-top:4px">로그인하고 계속</button>
+    </div>
+  </div>`;
+  const go = () => {
+    if(SSO_CONFIG.mode !== 'demo'){ if(ssoLogin()) return; $('#siteState').innerHTML = '<span class="pill no">✕ SSO 설정이 완료되지 않았습니다</span>'; return; }
+    if(!$('#siteId').value.trim()){ $('#siteState').innerHTML = '<span class="pill no">✕ 아이디를 입력하세요</span>'; return; }
+    SITE = {id:$('#siteId').value.trim(), at:today(), via:'demo'}; saveSite(); route();
+  };
+  $('#siteBtn').onclick = go;
+  $('#sitePw').addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+}
+function renderLogin(){
+  $('#app').innerHTML = `
+  <div class="login-wrap">
+    <div class="card" style="padding:30px 32px">
+      <div class="eyebrow">장학사업위원회 전용</div>
+      <h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px">위원회 로그인</h2>
+      <p class="hint" style="margin:0 0 18px">장학생 심사는 위원회에 지정된 아이디(CDCS_01~CDCS_20)로 로그인한 위원만 열 수 있습니다.</p>
+      <label class="f"><span>아이디</span><input type="text" id="loginId" autocomplete="username" placeholder="예: CDCS_01"></label>
+      <label class="f" style="margin-top:12px"><span>비밀번호</span><input type="password" id="loginPw" autocomplete="current-password"></label>
+      <div class="verify" id="loginState" style="margin:12px 0 0"></div>
+      <button class="btn btn-ink" id="loginBtn" style="width:100%;justify-content:center;margin-top:4px">로그인</button>
+      <p class="hint">데모 계정 · 아이디 CDCS_01~CDCS_20, 비밀번호 202601CDCS~202620CDCS (번호가 서로 대응)</p>
+    </div>
+  </div>`;
+  const tryLogin = () => {
+    const acc = ACCOUNTS.find(a => a.id === $('#loginId').value.trim() && a.pw === $('#loginPw').value);
+    if(!acc){ $('#loginState').innerHTML = '<span class="pill no">✕ 아이디 또는 비밀번호가 올바르지 않습니다</span>'; return; }
+    AUTH = {id:acc.id, at:today()}; saveAuth(); route();
+  };
+  $('#loginBtn').onclick = tryLogin;
+  $('#loginPw').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+}
+
 /* =====================================================================
-   3. 라우팅 (#recommend | #board | #student/<token>)
+   3. 라우팅 (#recommend | #student/<token> | #review[/<id>])
    ===================================================================== */
 function route(){
   const [view, token] = (location.hash.slice(1) || 'recommend').split('/');
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.go === view ? 'page' : 'false'));
   window.scrollTo(0,0);
-  if(view === 'board') return renderBoard();
+  paintAuth();
+  if(!SITE) return renderSiteLogin();                       // 모든 화면: 교회홈페이지 로그인 필요
+  if(view === 'review' && !AUTH) return renderLogin();      // 장학생 심사: 위원회 계정 필요
   if(view === 'student') return renderStudent(token);
   if(view === 'review') return token ? renderReviewDetail(token) : renderReview();
   return renderRecommend();
@@ -516,9 +675,9 @@ function renderRecommend(){
   app.innerHTML = `
   <div class="hero">
     <div>
-      <div class="eyebrow">화면 1 · 추천인 전용</div>
+      <div class="eyebrow">장학생 추천</div>
       <h1>이 학생을 추천합니다</h1>
-      <p class="lede">추천권이 있는 교인이 학생을 먼저 발의합니다. 여기서 지정한 장학금에 따라 학생이 받게 될 지원서가 결정됩니다.</p>
+      <p class="lede">추천권한이 있는 교인이면 누구나 장학생을 추천할 수 있습니다. 여기서 장학금의 종류를 지정하면 학생이 받게 될 지원서가 결정됩니다.</p>
     </div>
   </div>
   <div class="grid">
@@ -538,7 +697,7 @@ function renderRecommend(){
       </section>
 
       <section class="sec" data-s="2">
-        <div class="sec-h"><div class="num">02</div><div><h2>장학금 선택</h2><p>유형을 먼저 정해야 이후 항목이 열립니다. 학생에게는 이 유형의 맞춤 지원서만 보입니다.</p></div></div>
+        <div class="sec-h"><div class="num">02</div><div><h2>장학금 선택</h2><p>유형을 먼저 정해야 이후 항목이 열립니다. 학생에게는 이 유형의 맞춤 지원서가 보입니다.</p></div></div>
         <div class="types" role="radiogroup" aria-label="장학금">
           ${Object.values(TYPES).map(t => `
             <label class="type" role="radio" aria-checked="${R.type===t.code}" tabindex="0" data-type="${t.code}">
@@ -705,7 +864,6 @@ function submitRecommendation(){
         </dl>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <a class="btn btn-ink" href="${link}" id="goStudent">학생 화면 열어 보기</a>
-          <a class="btn btn-ghost" href="#board" id="goBoard">진행 현황 보기</a>
           <button class="btn btn-ghost" id="newRec">새 추천 작성</button>
         </div>
       </div>
@@ -718,65 +876,23 @@ function submitRecommendation(){
     </div>
   </div>`;
   const close = () => $('#layer').innerHTML = '';
-  $('#goStudent').onclick = close; $('#goBoard').onclick = close;
+  $('#goStudent').onclick = close;
   $('#newRec').onclick = () => { close(); R = freshR(); renderRecommend(); };
   R = freshR();
 }
 
 /* =====================================================================
-   5. 지원 진행 현황판 (화면 2 / 화면 4 일부)
-   ===================================================================== */
-let boardFilter = 'ALL';
-function renderBoard(){
-  const counts = Object.keys(STATUS).reduce((a,k)=>(a[k]=DB.filter(r=>r.status===k).length,a),{});
-  const rows = DB.filter(r => boardFilter==='ALL' || r.status===boardFilter);
-  $('#app').innerHTML = `
-  <div class="hero"><div>
-    <div class="eyebrow">위원회 · 지원 진행 현황판</div>
-    <h1>누가, 어디까지 왔는지</h1>
-    <p class="lede">추천서 ID와 학생 지원서 ID는 최종 제출 시 하나의 통합 접수번호로 묶입니다. 추천 평가 내용은 이 목록에도 노출하지 않습니다.</p>
-  </div>
-  <button class="btn btn-ghost btn-sm" id="reset">데모 데이터 초기화</button></div>
-  <p class="flow">${['WAIT','ACCEPT','DOCS','DONE'].map(k=>`<span class="st st-${k}">${STATUS[k]}</span>`).join('<i>→</i>')} <i>·</i> <span class="st st-DECLINE">${STATUS.DECLINE}</span></p>
-  <div class="chips">
-    <button class="chip" data-f="ALL" aria-pressed="${boardFilter==='ALL'}">전체<b>${DB.length}</b></button>
-    ${Object.entries(STATUS).map(([k,v])=>`<button class="chip" data-f="${k}" aria-pressed="${boardFilter===k}">${v}<b>${counts[k]}</b></button>`).join('')}
-  </div>
-  <div class="card table-wrap">
-    ${rows.length ? `<table class="board">
-      <thead><tr><th>추천서 ID</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>상태</th><th>통합 접수번호</th><th>바로가기</th></tr></thead>
-      <tbody>${rows.map(r => `<tr>
-        <td class="mono">${r.id}<div style="color:var(--ink-3);font-size:11px">${r.createdAt}</div></td>
-        <td><b>${esc(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${esc(r.student.phone)}</div></td>
-        <td><span class="tag">${r.type}</span> ${TYPES[r.type].name}</td>
-        <td>${esc(r.recommender.name)} <span style="color:var(--ink-3);font-size:12px">${esc(r.recommender.dept)} ${esc(r.recommender.title)}</span></td>
-        <td><span class="st st-${r.status}">${STATUS[r.status]}</span></td>
-        <td class="mono">${r.app?.receipt ? `${r.app.receipt}<div style="color:var(--ink-3);font-size:11px">${r.id} + ${r.app.id}</div>` : '—'}</td>
-        <td style="white-space:nowrap"><a class="btn btn-ghost btn-sm" href="#student/${r.token}">열기</a> <button class="btn btn-ghost btn-sm" data-copy="${r.token}">복사</button> <a class="btn btn-ghost btn-sm" href="#review/${r.id}">심사</a></td>
-      </tr>`).join('')}</tbody></table>`
-    : `<div class="empty">이 상태의 지원 건이 없습니다. 다른 상태를 선택하거나 <a href="#recommend">새 추천을 작성</a>하세요.</div>`}
-  </div>`;
-  $$('.chip').forEach(c => c.onclick = () => { boardFilter = c.dataset.f; renderBoard(); });
-  $$('[data-copy]').forEach(b => b.onclick = () => {
-    const url = location.href.split('#')[0] + '#student/' + b.dataset.copy;
-    navigator.clipboard?.writeText(url); toast('학생 지원서 링크를 복사했습니다');
-  });
-  $('#reset').onclick = () => { DB = seed(); save(); boardFilter='ALL'; renderBoard(); toast('데모 데이터를 초기화했습니다'); };
-}
-
-/* =====================================================================
-   5-1. 화면 4 · 장학사업위원회 '매칭 및 최종 접수' 대시보드
-        — 추천서(REC) + 학생 지원서(APP) → 통합 접수번호로 결합해 심사
+   5. 장학생 심사 — 진행 현황 + 위원회 심사 (통합 화면)
+      최종 지원이 완료된 학생만 '심사' 버튼이 활성화됩니다.
    ===================================================================== */
 const DECISION = {PENDING:'심사 대기', SELECT:'선정', HOLD:'보류', REJECT:'미선정'};
 const hasEvals = r => !!r.evals && !TYPES[r.type].noEvals;
-const docsOf = r => { const t = TYPES[r.type]; const f = r.app?.files || r.files || {}; return {need:t.docs, have:t.docs.filter(d=>f[d]), files:f}; };
+const docsOf = r => { const t = TYPES[r.type]; const f = r.app?.files || r.files || {}; return {need:t.docs, have:t.docs.filter(x=>f[x]), files:f}; };
 const decisionOf = r => r.review?.decision || 'PENDING';
 const mask = name => !name ? '' : name.length <= 1 ? name : name[0] + '*'.repeat(Math.max(1,name.length-2)) + (name.length>2 ? name.at(-1) : '');
-let RV = {type:'ALL', blind:false, onlyComplete:false};
-
+let RV = {type:'ALL', status:'ALL', blind:false};
 function reviewRows(){
-  return DB.filter(r => (RV.type==='ALL' || r.type===RV.type) && (!RV.onlyComplete || r.status==='DONE'));
+  return DB.filter(r => (RV.type==='ALL' || r.type===RV.type) && (RV.status==='ALL' || r.status===RV.status));
 }
 function renderReview(){
   const all = DB, done = all.filter(r=>r.status==='DONE');
@@ -785,11 +901,12 @@ function renderReview(){
   const sel = all.filter(r=>decisionOf(r)==='SELECT').length;
   const rows = reviewRows();
   const nm = n => RV.blind ? mask(n) : esc(n);
+  const statusChips = [['ALL','전체']].concat(Object.entries(STATUS));
   $('#app').innerHTML = `
   <div class="hero"><div>
-    <div class="eyebrow">화면 4 · 장학사업위원회 전용</div>
-    <h1>매칭 및 최종 접수</h1>
-    <p class="lede">추천서와 학생 지원서를 통합 접수번호로 묶어 한 화면에서 심사합니다. 추천인이 작성한 6개 항목의 추천 사유는 이 화면에서만 열람할 수 있습니다.</p>
+    <div class="eyebrow">장학사업위원회 전용</div>
+    <h1>장학생 심사</h1>
+    <p class="lede">지원 진행 현황을 한눈에 확인합니다. 최종 지원이 완료된 학생만 심사 버튼이 열리고, 추천서와 지원서를 묶어 심사할 수 있습니다.</p>
   </div></div>
   <div class="stats">
     <div class="stat"><small>전체 추천</small><b>${all.length}<span>건</span></b></div>
@@ -797,36 +914,39 @@ function renderReview(){
     <div class="stat"><small>추천 사유 평균 분량</small><b>${avg}<span>자</span></b></div>
     <div class="stat"><small>선정 결정</small><b>${sel}<span>건</span></b></div>
   </div>
+  <div class="chips"><span class="grp">진행 상태</span>
+    ${statusChips.map(([k,v])=>`<button class="chip" data-s="${k}" aria-pressed="${RV.status===k}">${v}<b>${k==='ALL'?all.length:all.filter(r=>r.status===k).length}</b></button>`).join('')}
+  </div>
   <div class="toolbar">
-    <div class="chips" style="margin:0">
-      <button class="chip" data-t="ALL" aria-pressed="${RV.type==='ALL'}">전체 장학금<b>${all.length}</b></button>
+    <div class="chips" style="margin:0"><span class="grp">장학금</span>
+      <button class="chip" data-t="ALL" aria-pressed="${RV.type==='ALL'}">전체<b>${all.length}</b></button>
       ${Object.values(TYPES).map(t=>`<button class="chip" data-t="${t.code}" aria-pressed="${RV.type===t.code}">${t.code} ${t.name}<b>${all.filter(r=>r.type===t.code).length}</b></button>`).join('')}
     </div>
     <span class="sp"></span>
-    <label class="switch"><input type="checkbox" id="onlyDone" ${RV.onlyComplete?'checked':''}> 최종 지원 완료만</label>
     <label class="switch"><input type="checkbox" id="blind" ${RV.blind?'checked':''}> 블라인드 심사</label>
-    <button class="btn btn-ink btn-sm" id="exportX">엑셀 현황표 내보내기</button>
+    <button class="btn btn-ghost btn-sm" id="driveCfg">Drive 설정</button>
+    <button class="btn btn-ink btn-sm" id="exportX">진행현황 엑셀 다운로드</button>
   </div>
   <div class="card table-wrap">
     ${rows.length ? `<table class="board">
-      <thead><tr><th>통합 접수번호</th><th>추천 학생</th><th>장학금</th><th>추천인</th><th>추천 사유</th><th>서류</th><th>진행 상태</th><th>심사 결정</th><th></th></tr></thead>
-      <tbody>${rows.map(r => { const d = docsOf(r); return `<tr>
-        <td class="mono">${r.app?.receipt || '<span style="color:var(--ink-3)">미발급</span>'}<div style="color:var(--ink-3);font-size:11px">${r.id}${r.app?' + '+r.app.id:''}</div></td>
-        <td><b>${nm(r.student.name)}</b><div style="color:var(--ink-3);font-size:12px">${r.student.birth.slice(0,4)}년생</div></td>
+      <thead><tr><th>추천 학생</th><th>장학금</th><th>추천인</th><th>진행 상태</th><th>심사 결정</th><th>심사</th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td><b>${nm(r.student.name)}</b></td>
         <td style="white-space:nowrap"><span class="tag">${r.type}</span> ${TYPES[r.type].name}</td>
         <td>${nm(r.recommender.name)} <span style="color:var(--ink-3);font-size:12px">${esc(r.recommender.title)}</span></td>
-        <td>${!hasEvals(r) ? '<span style="color:var(--ink-3);font-size:12px">해당 없음</span>' : `<div class="score"><div class="bar"><i style="width:${evalDone(r.evals)/EVALS.length*100}%"></i></div><b>${evalDone(r.evals)}/${EVALS.length}</b></div><div style="color:var(--ink-3);font-size:11px">${evalChars(r.evals).toLocaleString()}자</div>`}</td>
-        <td><span class="docs-n ${d.have.length===d.need.length?'ok':d.have.length?'':'miss'}">${d.have.length}/${d.need.length}</span></td>
         <td><span class="st st-${r.status}">${STATUS[r.status]}</span></td>
         <td><span class="dc dc-${decisionOf(r)}">${DECISION[decisionOf(r)]}</span></td>
-        <td><a class="btn btn-ghost btn-sm" href="#review/${r.id}">상세 심사</a></td>
-      </tr>`;}).join('')}</tbody></table>`
-    : `<div class="empty">조건에 맞는 지원 건이 없습니다. 유형 필터를 '전체 장학금'으로 바꾸거나 '최종 지원 완료만'을 끄세요.</div>`}
+        <td>${r.status==='DONE'
+          ? `<a class="btn btn-ink btn-sm" href="#review/${r.id}">심사</a>`
+          : `<button class="btn btn-ghost btn-sm" disabled title="최종 지원이 완료되면 심사할 수 있습니다">심사</button>`}</td>
+      </tr>`).join('')}</tbody></table>`
+    : `<div class="empty">조건에 맞는 지원 건이 없습니다. 위의 진행 상태·장학금 필터를 바꿔 보세요.</div>`}
   </div>`;
+  $$('[data-s]').forEach(c => c.onclick = () => { RV.status = c.dataset.s; renderReview(); });
   $$('[data-t]').forEach(c => c.onclick = () => { RV.type = c.dataset.t; renderReview(); });
   $('#blind').onchange = e => { RV.blind = e.target.checked; renderReview(); };
-  $('#onlyDone').onchange = e => { RV.onlyComplete = e.target.checked; renderReview(); };
   $('#exportX').onclick = exportExcel;
+  $('#driveCfg').onclick = openDriveSettings;
 }
 
 /* 상세 — 추천서(좌) + 학생 지원서(우) 결합 화면 */
@@ -853,11 +973,11 @@ function renderReviewDetail(id){
   </div><span class="st st-${r.status}">${STATUS[r.status]}</span></div>
 
   <div class="join">
-    <div class="doc-id"><small>추천서 ID · ${r.createdAt}</small><b>${r.id}</b></div>
+    <div class="doc-id"><small>추천서</small><b>추천인 제출 완료${r.createdAt?' · '+r.createdAt:''}</b></div>
     <div class="knot"><div style="display:flex;align-items:center;gap:10px;width:100%"><span class="wire" style="flex:1;min-width:24px"></span>
-      <span class="rcpt ${app?'':'pending'}">${app?.receipt || '접수번호 미발급'}</span><span class="wire" style="flex:1;min-width:24px"></span></div>
-      <small>${app ? '통합 접수번호 · '+app.submittedAt+' 결합' : '학생 최종 제출 시 발급'}</small></div>
-    <div class="doc-id"><small>학생 지원서 ID</small><b>${app?.id || '—'}</b></div>
+      <span class="rcpt ${app?'':'pending'}">${app ? '지원서 접수 완료' : '지원서 미제출'}</span><span class="wire" style="flex:1;min-width:24px"></span></div>
+      <small>${app ? '추천서와 학생 지원서가 묶여 심사 대상이 되었습니다' : '학생이 추천을 수락하고 지원서를 제출하면 심사 대상이 됩니다'}</small></div>
+    <div class="doc-id"><small>학생 지원서</small><b>${app ? '제출 '+app.submittedAt : '미제출'}</b></div>
   </div>
 
   <div class="split">
@@ -915,24 +1035,54 @@ function renderReviewDetail(id){
   };
 }
 
+function openDriveSettings(){
+  $('#layer').innerHTML = `
+  <div class="scrim" role="dialog" aria-modal="true">
+    <div class="modal" style="max-width:640px;display:block">
+      <div class="mbody">
+        <div class="eyebrow">관리자 설정</div>
+        <h2 style="font-family:var(--display);font-size:22px;margin:6px 0 4px">구글드라이브 연동</h2>
+        <p class="hint" style="margin:0 0 16px">엑셀 현황표와 학생 지원서를 저장할 구글 계정을 지정합니다. 실제 배포에서는 이 설정이 서버에 저장되고, 구글 드라이브 API(서비스 계정 또는 OAuth)로 업로드됩니다. 프로토타입에서는 아래 미리보기에 항목이 쌓입니다.</p>
+        <div class="row">
+          <label class="f"><span>구글 계정<em>*</em></span><input type="email" id="dAcct" value="${esc(DRIVE.account)}" placeholder="example@gmail.com"></label>
+          <label class="f"><span>상위 폴더</span><input type="text" id="dFolder" value="${esc(DRIVE.folder)}" placeholder="정동장학"></label>
+        </div>
+        <label class="check" style="margin-top:12px"><input type="checkbox" id="dOn" ${DRIVE.enabled?'checked':''}> 연동 사용 — 엑셀 현황표와 학생 지원서를 드라이브에 저장합니다</label>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn-brick" id="dSave">설정 저장</button>
+          <button class="btn btn-ghost" id="dClose">닫기</button>
+        </div>
+        <h3 style="font-size:13px;margin:20px 0 8px;color:var(--ink-2)">저장소 미리보기 — 학생 이름 폴더별 (프로토타입 시뮬레이션)</h3>
+        ${DRIVE.files.length ? `<ul class="preview-list" style="max-height:230px;overflow:auto">${DRIVE.files.map(f=>`<li><span>${f.folder?esc(f.folder)+'/':'(최상위)'}${esc(f.name)} <span class="tag">${f.kind}</span></span><span>${f.at}</span></li>`).join('')}</ul>` : `<p class="hint" style="margin:0">아직 저장된 항목이 없습니다. 학생이 최종 제출하거나 엑셀을 내보내면 여기에 쌓입니다.</p>`}
+      </div>
+    </div>
+  </div>`;
+  $('#dSave').onclick = () => {
+    const a = $('#dAcct').value.trim();
+    if(!/\S+@\S+\.\S+/.test(a)){ toast('구글 계정(이메일)을 입력하세요'); $('#dAcct').focus(); return; }
+    DRIVE.account = a; DRIVE.folder = $('#dFolder').value.trim() || '정동장학'; DRIVE.enabled = $('#dOn').checked; saveDrive();
+    $('#layer').innerHTML = ''; toast(`구글드라이브 설정을 저장했습니다 · ${esc(DRIVE.account)} / ${esc(DRIVE.folder)}`);
+  };
+  $('#dClose').onclick = () => $('#layer').innerHTML = '';
+}
+
 /* 엑셀 현황표 내보내기 — 시트 3개: 현황표 / 추천 사유 / 유형별 집계 */
 function exportExcel(){
   const rows = reviewRows();
   const blind = RV.blind;
   const nm = n => blind ? mask(n) : n;
   const s1 = rows.map(r => { const d = docsOf(r), ev = hasEvals(r); return {
-    '통합 접수번호': r.app?.receipt || '', '추천서 ID': r.id, '지원서 ID': r.app?.id || '',
     '장학금': `${r.type} ${TYPES[r.type].name}`, '추천 학생': nm(r.student.name), '생년월일': r.student.birth,
     '연락처': blind ? '' : r.student.phone, '이메일': blind ? '' : r.student.email,
     '추천인': nm(r.recommender.name), '추천인 소속': r.recommender.dept, '추천인 직분': r.recommender.title, '추천일': r.createdAt,
     '추천 사유 작성': ev ? `${evalDone(r.evals)}/${EVALS.length}` : '', '추천 사유 분량(자)': ev ? evalChars(r.evals) : '',
     '학교': r.app?.data?.school || '', '전공/학년': r.app?.data?.major || r.app?.data?.grade || '', '과정/학기': [r.app?.data?.course, r.app?.data?.semester].filter(Boolean).join(' '),
     '재지원': r.app ? (r.app.reapply ? 'Y' : 'N') : '',
-    '서류 제출': `${d.have.length}/${d.need.length}`, '미제출 서류': d.need.filter(x=>!d.files[x]).join(', '),
+    '서류 제출': `${d.have.length}/${d.need.length}` + (d.need.filter(x=>!d.files[x]).length ? ` (미제출: ${d.need.filter(x=>!d.files[x]).join(', ')})` : ' (전량 제출)'),
     '진행 상태': STATUS[r.status], '지원서 제출일': r.app?.submittedAt || '',
     '심사 결정': DECISION[decisionOf(r)], '심사 메모': r.review?.memo || '' }; });
   const s2 = rows.filter(hasEvals).map(r => ({
-    '추천서 ID': r.id, '추천 학생': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
+    '추천 학생': nm(r.student.name), '장학금': `${r.type} ${TYPES[r.type].name}`,
     ...Object.fromEntries(EVALS.map(e => [e.name, r.evals?.[e.id] || ''])),
     '총 분량(공백 제외)': evalChars(r.evals) }));
   const s3 = Object.values(TYPES).map(t => { const g = DB.filter(r=>r.type===t.code); return {
@@ -945,21 +1095,25 @@ function exportExcel(){
     const wb = XLSX.utils.book_new();
     const add = (data, name, widths) => { const ws = XLSX.utils.json_to_sheet(data.length ? data : [{'안내':'내보낼 데이터가 없습니다'}]);
       ws['!cols'] = widths.map(w => ({wch:w})); ws['!autofilter'] = data.length ? {ref: ws['!ref']} : undefined; XLSX.utils.book_append_sheet(wb, ws, name); };
-    add(s1, '장학생 지원 현황표', [16,15,15,18,10,12,15,22,10,12,10,12,10,10,18,12,12,7,9,30,14,13,10,40]);
-    add(s2, '추천 사유', [15,10,18,50,50,50,50,50,60,14]);
+    add(s1, '장학생 지원 현황표', [18,10,12,15,22,10,12,10,12,10,12,10,10,18,12,12,7,9,30,45,13,10]);
+    add(s2, '추천 사유', [10,18,50,50,50,50,50,60,14]);
     add(s3, '유형별 집계', [20,7,9,9,9,9,7,7]);
-    XLSX.writeFile(wb, `장학생지원현황표_${stamp}.xlsx`);
-    toast(`엑셀 현황표를 내려받았습니다 · ${rows.length}건`);
+    const xname = `장학생지원현황표_${stamp}.xlsx`;
+    XLSX.writeFile(wb, xname);
+    const okD = drivePut('', xname, '엑셀 현황표', `${rows.length}건`);
+    toast(`엑셀 현황표를 내려받았습니다 · ${rows.length}건${okD?' · 구글드라이브에도 저장':''}${DRIVE.enabled&&!okD?' · 드라이브 계정을 먼저 설정하세요':''}`);
   } else {             // CDN을 못 불러온 경우 CSV로 대체
     const keys = Object.keys(s1[0] || {'안내':''});
     const csv = '\ufeff' + [keys.join(','), ...s1.map(o => keys.map(k => `"${String(o[k]??'').replace(/"/g,'""')}"`).join(','))].join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `장학생지원현황표_${stamp}.csv`; a.click();
+    const cname = `장학생지원현황표_${stamp}.csv`;
+    drivePut('', cname, '엑셀 현황표', `${rows.length}건 (CSV)`);
     toast('엑셀 라이브러리를 불러오지 못해 CSV로 내려받았습니다');
   }
 }
 
 /* =====================================================================
-   6. 화면 3 · 학생 전용 '추천 수락 및 증빙서류 제출'
+   6. 장학생 지원 '추천 수락 및 지원서 작성'
       — 추천인이 지정한 유형(TYPES[x])의 스키마로 폼을 동적 렌더링
    ===================================================================== */
 const S = {}; // 토큰별 학생 세션 상태
@@ -970,7 +1124,7 @@ function sessionFor(token){
 
 function renderStudent(token){
   const raw = DB.find(r => r.token === token);
-  if(!raw){ $('#app').innerHTML = `<div class="card empty"><h2 style="font-family:var(--display)">유효하지 않은 링크입니다</h2><p>알림으로 받은 링크를 다시 열거나 장학사업위원회에 문의하세요.</p><a class="btn btn-ink" href="#board">진행 현황으로</a></div>`; return; }
+  if(!raw){ $('#app').innerHTML = `<div class="card empty"><h2 style="font-family:var(--display)">유효하지 않은 링크입니다</h2><p>알림으로 받은 링크를 다시 열거나 장학사업위원회에 문의하세요.</p></div>`; return; }
   const rec = studentView(raw);            // ← 추천 사유가 제거된 데이터만 사용
   const t = TYPES[rec.type]; const ss = sessionFor(token);
   if(raw.status === 'DECLINE') ss.stage = 'declined';
@@ -981,7 +1135,7 @@ function renderStudent(token){
 
   $('#app').innerHTML = `
   <div class="hero"><div>
-    <div class="eyebrow">화면 3 · 학생 전용 <span class="tag" style="margin-left:6px">링크 ${esc(token)}</span></div>
+    <div class="eyebrow">장학생 지원 <span class="tag" style="margin-left:6px">링크 ${esc(token)}</span></div>
     <p class="welcome" style="margin-top:8px"><em>${esc(rec.student.name)}</em> 님, 공동체가 당신을 추천했습니다.</p>
     <p class="lede">${esc(rec.recommender.dept)} ${esc(rec.recommender.title)} <b>${esc(rec.recommender.name)}</b> 님이 <b>${t.name}</b> 장학생으로 추천했습니다.</p>
   </div></div>
@@ -1013,8 +1167,7 @@ function renderStuSide(t, ss){
 }
 
 /* 6-1 본인정보 입력 및 추천 수락
-   대조 서버가 없으므로 정보 일치 확인은 하지 않는다.
-   4개 항목을 모두 입력하면 바로 추천 수락 단계가 열린다. (서버 연동 시 이 지점에서 대조) */
+   네 항목을 모두 입력하면 바로 추천 수락 단계가 열립니다. (정보 일치 대조 절차 없음) */
 const normPhone = v => String(v||'').replace(/\D/g,'');
 const authFilled = a => a.name.trim() && a.birth && normPhone(a.phone).length >= 10 && /\S+@\S+\.\S+/.test(a.email.trim());
 function stuAuth(main, raw, rec, t, ss){
@@ -1028,6 +1181,7 @@ function stuAuth(main, raw, rec, t, ss){
         <label class="f"><span>이메일<em>*</em></span><input type="email" id="aEmail" value="${esc(ss.auth.email)}" placeholder="name@example.com" autocomplete="email"></label>
       </div>
       <div class="verify" id="aState"></div>
+      <p class="hint">입력한 정보는 지원서와 함께 위원회 심사에 사용됩니다.</p>
     </section>
     <section class="sec locked" id="acceptSec">
       <div class="sec-h"><div class="num">02</div><div><h2>추천 수락</h2><p>수락하면 ${t.parent?'보호자 동의 후 ':''}<b>${t.name}</b> 맞춤 지원서가 열립니다.</p></div></div>
@@ -1165,23 +1319,24 @@ function stuForm(main, raw, rec, t, ss){
     if(e.target.type === 'radio') refreshConditional(); else paintCounts();
     check();
   });
-  form.addEventListener('change', e => {
+  const reChk = $('#reChk');
+  if(reChk) reChk.onchange = () => { ss.reapply = reChk.checked; $('#reBox').innerHTML = ss.reapply ? fieldHTML(REAPPLY_FIELD, ss) : ''; paintCounts(); check(); };
+
+  form.addEventListener('change', e => {          // 증빙서류 온라인 첨부
     if(e.target.type === 'file'){
       const i = +e.target.id.replace('file',''); const d = t.docs[i]; const file = e.target.files[0]; if(!file) return;
       if(file.size > 10*1024*1024){ toast('10MB 이하 파일만 올릴 수 있습니다'); return; }
-      ss.files[d] = file.name; raw.files = {...ss.files}; save();
+      ss.files[d] = file.name; raw.files = {...ss.files};
+      if(t.docs.every(x => ss.files[x]) && raw.status === 'ACCEPT'){ raw.status = 'DOCS'; toast('모든 서류가 올라왔습니다 · 상태: 서류 제출 완료'); }
+      save();
       const box = $(`[data-doc="${i}"]`, form); box.classList.add('ok');
       $('small', box).textContent = '✓ ' + file.name; $('label', box).textContent = '바꾸기';
-      const allDocs = t.docs.every(x => ss.files[x]);
-      if(allDocs && raw.status === 'ACCEPT'){ raw.status = 'DOCS'; save(); toast('모든 서류가 올라왔습니다 · 상태: 서류 제출 완료'); }
       check();
     }
   });
   $$('.doc label', form).forEach(l => l.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('#'+l.htmlFor).click(); } }));
-  const reChk = $('#reChk');
-  if(reChk) reChk.onchange = () => { ss.reapply = reChk.checked; $('#reBox').innerHTML = ss.reapply ? fieldHTML(REAPPLY_FIELD, ss) : ''; paintCounts(); check(); };
 
-  // 실시간 서류 제출 확인 — 누락 시 제출 버튼 비활성
+  // 실시간 확인 — 문항과 증빙서류가 모두 채워져야 최종 제출 활성
   function check(){
     const missF = activeFields(t, ss).filter(f => !fieldOk(f, ss));
     const missD = t.docs.filter(d => !ss.files[d]);
@@ -1193,7 +1348,12 @@ function stuForm(main, raw, rec, t, ss){
   $('#finalSubmit').onclick = () => {
     const seq = String(8 + DB.filter(r => r.app).length).padStart(4,'0');
     raw.app = {id:`APP-2026-${seq}`, receipt:`JD-2026-2-${seq}`, submittedAt:today(), type:t.code, data:{...ss.data}, files:{...ss.files}, reapply:ss.reapply};
-    raw.status = 'DONE'; save(); ss.stage = 'done'; renderStudent(raw.token);
+    raw.status = 'DONE';
+    // 구글드라이브: 학생 이름 폴더에 지원서와 증빙서류를 저장 (프로토타입 시뮬레이션)
+    const okD = drivePut(raw.student.name, `지원서_${raw.app.receipt}.json`, '학생 지원서', '지원서 데이터');
+    Object.values(raw.app.files||{}).forEach(fn => drivePut(raw.student.name, fn, '학생 지원서', '증빙서류'));
+    save(); ss.stage = 'done'; renderStudent(raw.token);
+    toast(`지원서가 접수되었습니다${okD?` · 구글드라이브 “${esc(raw.student.name)}” 폴더에 저장`:DRIVE.enabled?' · 구글드라이브 계정이 설정되지 않았습니다':''}`);
   };
   paintCounts(); check();
 }
@@ -1202,14 +1362,13 @@ function stuDone(main, raw, rec, t){
   main.innerHTML = `<div class="card fadein" style="padding:36px 32px">
     <div class="eyebrow">최종 지원 완료</div>
     <h2 style="font-family:var(--display);font-size:26px;margin:8px 0 6px">지원서가 접수되었습니다</h2>
-    <p style="color:var(--ink-2);margin:0">추천서와 지원서가 하나의 접수번호로 묶여 장학사업위원회 심사에 올라갑니다.${t.code==='A'?` ${t.name} 장학금은 담당 목사 추천으로 승인에 준해 처리됩니다.`:''}</p>
+    <p style="color:var(--ink-2);margin:0">추천서와 지원서가 함께 장학사업위원회 심사에 올라갑니다.${t.code==='A'?` ${t.name} 장학금은 담당 목사 추천으로 승인에 준해 처리됩니다.`:''}</p>
     <dl class="kv">
-      <dt>통합 접수번호</dt><dd class="mono" style="font-size:16px;font-weight:500">${raw.app?.receipt||'—'}</dd>
-      <dt>결합 내역</dt><dd class="mono">${raw.id} + ${raw.app?.id||''}</dd>
-      <dt>장학금</dt><dd>유형 ${t.code} ${t.name}</dd>
+      <dt>장학금</dt><dd>${t.name}</dd>
       <dt>제출일</dt><dd>${raw.app?.submittedAt||''}</dd>
+      <dt>증빙서류</dt><dd>${t.docs.join(' · ')} (교회사무실 직접 제출)</dd>
     </dl>
-    <a class="btn btn-ghost" href="#board">진행 현황에서 확인</a></div>`;
+    <p class="hint" style="margin-top:14px">증빙서류는 교회사무실로 직접 제출해 주세요.</p></div>`;
 }
 function stuDeclined(main, raw){
   main.innerHTML = `<div class="card fadein" style="padding:36px 32px">
@@ -1220,8 +1379,8 @@ function stuDeclined(main, raw){
   $('#undo').onclick = () => { raw.status='WAIT'; save(); delete S[raw.token]; renderStudent(raw.token); };
 }
 
-route();
+ssoInit().then(()=>route());
 </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4bc70e2c01a94c73b74392e4234840661791215815920" integrity="sha512-L0ha0OXavK/8okipN9F8BtP84dg9DUhPERbBXzwI6dgTA55d2+yweo3pn5CSFYs45/r8md2+xvUPtTdvTNRfjA==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
