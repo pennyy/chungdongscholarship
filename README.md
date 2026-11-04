@@ -425,7 +425,7 @@ const STATUS = {WAIT:'수락·보완 대기 중', ACCEPT:'지원 수락', DECLIN
 /* =====================================================================
    1. 상태 저장소 (프로토타입: 메모리 + localStorage)
    ===================================================================== */
-const KEY = 'jd-scholar-proto-v6';
+const KEY = 'jd-scholar-proto-v8';
 const LONG = (a,b) => a + ' ' + b;
 const seed = () => ([
   {id:'REC-2026-0012', token:'t8k2qa', type:'C', createdAt:'2026-09-18',
@@ -471,97 +471,6 @@ const ACCOUNTS = Array.from({length:20},(_,i)=>({ id:`CDCS_${String(i+1).padStar
 let AUTH = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':auth')) }catch(e){} return null; })();
 const saveAuth = () => { try{ localStorage.setItem(KEY+':auth', JSON.stringify(AUTH)) }catch(e){} };
 
-/* =====================================================================
-   교회홈페이지(chungdong.org) SSO 연동
-   ---------------------------------------------------------------------
-   실제 배포 시에는 아래의 ssoInit / ssoLogin / ssoLogout / ssoSession 네 곳만
-   홈페이지의 인증 방식에 맞게 채우면 됩니다. 그 외 화면 코드는 SITE 객체만
-   바라보므로 바꿀 필요가 없습니다.
-
-   사이트별 흔한 방식 세 가지 중 하나를 골라 구현합니다.
-   (a) OAuth 2.0 / OIDC 리디렉션 (가장 일반적)
-       → ssoLogin()에서 홈페이지 인증 페이지로 이동하고,
-         본 파일이 콜백 URL(#sso-callback)로 다시 열릴 때 ssoInit()이 code를
-         서버 API로 바꿔 세션을 받아옵니다. (token 교환은 서버에서 수행)
-   (b) 홈페이지 세션 쿠키 + 서버 확인 API
-       → ssoInit()에서 /api/auth/me 같은 엔드포인트를 호출해 로그인 여부를 확인
-   (c) iframe/팝업으로 홈페이지 로그인 폼을 그대로 불러오는 방식
-       → renderSiteLogin()이 iframe을 표시하도록 바꿉니다.
-
-   프로토타입 모드(SSO_MODE='demo')에서는 아이디 입력만으로 로그인됩니다.
-   실제 연동 시 SSO_CONFIG를 채우고 SSO_MODE를 'oauth' 또는 'api'로 바꾸세요.
-   ===================================================================== */
-const SSO_CONFIG = {
-  mode: 'demo',                                   // 'demo' | 'oauth' | 'api'
-  homepageUrl: 'https://www.chungdong.org',       // 교회홈페이지 주소
-  authorizeUrl: '',                               // (a) 홈페이지 로그인/동의 화면 URL
-  clientId: '',                                   // (a) 홈페이지에서 발급받은 클라이언트 ID
-  redirectUri: '',                                // (a) 콜백 주소 — 이 서비스가 배포된 URL
-  checkUrl: '',                                   // (b) 로그인 세션 확인 API (GET → {id, name, ...})
-  callbackUrl: ''                                 // (a) code → 세션 교환 서버 API (POST)
-};
-let SITE = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':site')) }catch(e){} return null; })();
-const saveSite = () => { try{ localStorage.setItem(KEY+':site', JSON.stringify(SITE)) }catch(e){} };
-
-/* 세션 초기화 — 페이지가 열릴 때 호출됩니다.
-   (a) URL에 ?code= / #sso-callback 가 있으면 서버 API로 세션 교환
-   (b) 홈페이지 세션 쿠키가 있으면 checkUrl 로 확인
-   아래의 TODO 자리에 실제 호출을 채워 넣으세요. */
-async function ssoInit(){
-  if(SSO_CONFIG.mode === 'demo') return;                       // 데모: 수동 로그인 유지
-  try{
-    const url = new URL(location.href);
-    const code = url.searchParams.get('code') || (location.hash.match(/#sso-callback\b/) ? url.searchParams.get('code') : null);
-    if(code && SSO_CONFIG.callbackUrl){                        // (a) TODO: 서버에서 code→세션 교환
-      // const res = await fetch(SSO_CONFIG.callbackUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code})});
-      // const session = await res.json();
-      // if(session?.id){ SITE = {id:session.id, name:session.name, via:'sso'}; saveSite(); history.replaceState(null,'',location.pathname); }
-      return;
-    }
-    if(SSO_CONFIG.checkUrl){                                   // (b) TODO: 세션 확인
-      // const res = await fetch(SSO_CONFIG.checkUrl, {credentials:'include'});
-      // const session = await res.json();
-      // if(session?.id){ SITE = {id:session.id, name:session.name, via:'sso'}; saveSite(); }
-    }
-  }catch(e){ console.warn('[SSO] 세션 확인 실패', e); }
-}
-
-/* 로그인 시작 — 홈페이지 인증으로 보냅니다. (a) 방식 예시
-   redirectUri 는 배포 URL로 SSO_CONFIG에 채워야 합니다. */
-function ssoLogin(){
-  if(SSO_CONFIG.mode !== 'oauth' || !SSO_CONFIG.authorizeUrl) return false;   // 미설정 → 데모 로그인 폼 사용
-  const u = new URL(SSO_CONFIG.authorizeUrl);
-  u.searchParams.set('client_id', SSO_CONFIG.clientId);
-  u.searchParams.set('redirect_uri', SSO_CONFIG.redirectUri);
-  u.searchParams.set('response_type', 'code');
-  u.searchParams.set('state', Math.random().toString(36).slice(2));            // TODO: CSRF 방지 state 검증 추가
-  location.href = u.toString();
-  return true;
-}
-
-/* 로그아웃 — 서비스 세션만 지우고, 필요하면 홈페이지 로그아웃도 함께 처리 */
-function ssoLogout(){
-  if(SITE?.via === 'sso' && SSO_CONFIG.homepageUrl){
-    // TODO: 홈페이지 로그아웃 정책에 맞게 — 보통은 홈페이지 로그아웃 페이지로 보내거나 그냥 두기
-    // location.href = SSO_CONFIG.homepageUrl + '/logout?return=' + encodeURIComponent(location.origin);
-  }
-}
-
-/* 마이페이지 등에서 현재 사용자 표시에 쓸 수 있는 형태 */
-const ssoSession = () => SITE ? {id:SITE.id, name:SITE.name || SITE.id, via:SITE.via || 'demo'} : null;
-
-/* 구글드라이브 연동 — 관리자 설정 + 저장소 시뮬레이션
-   실제 배포: 이 지점(drivePut)을 서버 API(구글 드라이브 OAuth/서비스 계정) 호출로 바꿉니다.
-   DRIVE.account 에 관리자가 지정한 구글 계정, DRIVE.folder 에 상위 폴더를 저장합니다. */
-let DRIVE = (()=>{ try{ return JSON.parse(localStorage.getItem(KEY+':drive')) }catch(e){} return null; })() || {enabled:false, account:'', folder:'정동장학', files:[]};
-const saveDrive = () => { try{ localStorage.setItem(KEY+':drive', JSON.stringify(DRIVE)) }catch(e){} };
-const driveReady = () => DRIVE.enabled && /\S+@\S+\.\S+/.test(DRIVE.account);
-function drivePut(folder, name, kind, note=''){
-  DRIVE.files.unshift({folder, name, kind, note, at:new Date().toLocaleString('ko-KR',{hour12:false})});
-  DRIVE.files = DRIVE.files.slice(0,200); saveDrive();
-  return driveReady();
-}
-
 /* 학생에게 전달되는 투영(projection) — 추천 사유(6개 평가 항목)를 제거한다.
    실제 구현에서는 서버 API가 이 필드를 아예 응답하지 않아야 합니다(Read-Only 차단). */
 function studentView(rec){
@@ -588,42 +497,19 @@ const sealSVG = `<svg class="seal" viewBox="0 0 64 64" aria-hidden="true">
 
 function paintAuth(){
   const el = $('#authBox'); if(!el) return;
-  el.innerHTML = (SITE
-    ? `<b>${esc(SITE.id)}</b><button class="tab" id="siteOut">홈페이지 로그아웃</button>`
-    : `<button class="tab" id="siteIn">홈페이지 로그인</button>`)
-    + (AUTH ? `<b class="cm">위원회 ${esc(AUTH.id)}</b>` : '');
-  if($('#siteOut')) $('#siteOut').onclick = () => { SITE = null; AUTH = null; saveSite(); saveAuth(); ssoLogout(); route(); };
-  if($('#siteIn')) $('#siteIn').onclick = () => { route(); };
-}
-function renderSiteLogin(){
-  $('#app').innerHTML = `
-  <div class="login-wrap">
-    <div class="card" style="padding:30px 32px">
-      <div class="eyebrow">정동제일교회 · chungdong.org</div>
-      <h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px">교회홈페이지 로그인</h2>
-      <p class="hint" style="margin:0 0 6px">온라인 장학 서비스(장학생 추천·지원·심사)는 교회홈페이지에 로그인한 후 이용할 수 있습니다.</p>
-      <p class="hint" style="margin:0 0 18px">프로토타입 · 아이디만 입력하면 홈페이지에 로그인된 것으로 처리합니다. 실제 운영에서는 위의 SSO_CONFIG를 채워 교회홈페이지(chungdong.org)와 연동합니다.</p>
-      <label class="f"><span>아이디</span><input type="text" id="siteId" autocomplete="username"></label>
-      <label class="f" style="margin-top:12px"><span>비밀번호</span><input type="password" id="sitePw" autocomplete="current-password"></label>
-      <div class="verify" id="siteState" style="margin:12px 0 0"></div>
-      <button class="btn btn-ink" id="siteBtn" style="width:100%;justify-content:center;margin-top:4px">로그인하고 계속</button>
-    </div>
-  </div>`;
-  const go = () => {
-    if(SSO_CONFIG.mode !== 'demo'){ if(ssoLogin()) return; $('#siteState').innerHTML = '<span class="pill no">✕ SSO 설정이 완료되지 않았습니다</span>'; return; }
-    if(!$('#siteId').value.trim()){ $('#siteState').innerHTML = '<span class="pill no">✕ 아이디를 입력하세요</span>'; return; }
-    SITE = {id:$('#siteId').value.trim(), at:today(), via:'demo'}; saveSite(); route();
-  };
-  $('#siteBtn').onclick = go;
-  $('#sitePw').addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+  el.innerHTML = AUTH
+    ? `<b class="cm">위원회 ${esc(AUTH.id)}</b><button class="tab" id="logoutBtn">로그아웃</button>`
+    : `<button class="tab" id="loginGo">위원회 로그인</button>`;
+  if($('#logoutBtn')) $('#logoutBtn').onclick = () => { AUTH = null; saveAuth(); route(); };
+  if($('#loginGo')) $('#loginGo').onclick = () => { location.hash = '#review'; };
 }
 function renderLogin(){
   $('#app').innerHTML = `
   <div class="login-wrap">
     <div class="card" style="padding:30px 32px">
-      <div class="eyebrow">장학사업위원회 전용</div>
+      <div class="eyebrow">장학생 온라인 지원 · 위원회 전용</div>
       <h2 style="font-family:var(--display);font-size:24px;margin:6px 0 10px">위원회 로그인</h2>
-      <p class="hint" style="margin:0 0 18px">장학생 심사는 위원회에 지정된 아이디(CDCS_01~CDCS_20)로 로그인한 위원만 열 수 있습니다.</p>
+      <p class="hint" style="margin:0 0 18px">장학생 심사는 이 서비스에 별도로 지정된 위원회 아이디(CDCS_01~CDCS_20)로 로그인한 위원만 열 수 있습니다.</p>
       <label class="f"><span>아이디</span><input type="text" id="loginId" autocomplete="username" placeholder="예: CDCS_01"></label>
       <label class="f" style="margin-top:12px"><span>비밀번호</span><input type="password" id="loginPw" autocomplete="current-password"></label>
       <div class="verify" id="loginState" style="margin:12px 0 0"></div>
@@ -642,13 +528,13 @@ function renderLogin(){
 
 /* =====================================================================
    3. 라우팅 (#recommend | #student/<token> | #review[/<id>])
+      — 장학생 추천·지원: 로그인 없이 이용 / 장학생 심사: 위원회 계정 필요
    ===================================================================== */
 function route(){
   const [view, token] = (location.hash.slice(1) || 'recommend').split('/');
   $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.go === view ? 'page' : 'false'));
   window.scrollTo(0,0);
   paintAuth();
-  if(!SITE) return renderSiteLogin();                       // 모든 화면: 교회홈페이지 로그인 필요
   if(view === 'review' && !AUTH) return renderLogin();      // 장학생 심사: 위원회 계정 필요
   if(view === 'student') return renderStudent(token);
   if(view === 'review') return token ? renderReviewDetail(token) : renderReview();
@@ -904,7 +790,7 @@ function renderReview(){
   const statusChips = [['ALL','전체']].concat(Object.entries(STATUS));
   $('#app').innerHTML = `
   <div class="hero"><div>
-    <div class="eyebrow">장학사업위원회 전용</div>
+    <div class="eyebrow">장학생 온라인 지원 · 위원회 전용</div>
     <h1>장학생 심사</h1>
     <p class="lede">지원 진행 현황을 한눈에 확인합니다. 최종 지원이 완료된 학생만 심사 버튼이 열리고, 추천서와 지원서를 묶어 심사할 수 있습니다.</p>
   </div></div>
@@ -924,7 +810,6 @@ function renderReview(){
     </div>
     <span class="sp"></span>
     <label class="switch"><input type="checkbox" id="blind" ${RV.blind?'checked':''}> 블라인드 심사</label>
-    <button class="btn btn-ghost btn-sm" id="driveCfg">Drive 설정</button>
     <button class="btn btn-ink btn-sm" id="exportX">진행현황 엑셀 다운로드</button>
   </div>
   <div class="card table-wrap">
@@ -946,7 +831,6 @@ function renderReview(){
   $$('[data-t]').forEach(c => c.onclick = () => { RV.type = c.dataset.t; renderReview(); });
   $('#blind').onchange = e => { RV.blind = e.target.checked; renderReview(); };
   $('#exportX').onclick = exportExcel;
-  $('#driveCfg').onclick = openDriveSettings;
 }
 
 /* 상세 — 추천서(좌) + 학생 지원서(우) 결합 화면 */
@@ -1035,37 +919,6 @@ function renderReviewDetail(id){
   };
 }
 
-function openDriveSettings(){
-  $('#layer').innerHTML = `
-  <div class="scrim" role="dialog" aria-modal="true">
-    <div class="modal" style="max-width:640px;display:block">
-      <div class="mbody">
-        <div class="eyebrow">관리자 설정</div>
-        <h2 style="font-family:var(--display);font-size:22px;margin:6px 0 4px">구글드라이브 연동</h2>
-        <p class="hint" style="margin:0 0 16px">엑셀 현황표와 학생 지원서를 저장할 구글 계정을 지정합니다. 실제 배포에서는 이 설정이 서버에 저장되고, 구글 드라이브 API(서비스 계정 또는 OAuth)로 업로드됩니다. 프로토타입에서는 아래 미리보기에 항목이 쌓입니다.</p>
-        <div class="row">
-          <label class="f"><span>구글 계정<em>*</em></span><input type="email" id="dAcct" value="${esc(DRIVE.account)}" placeholder="example@gmail.com"></label>
-          <label class="f"><span>상위 폴더</span><input type="text" id="dFolder" value="${esc(DRIVE.folder)}" placeholder="정동장학"></label>
-        </div>
-        <label class="check" style="margin-top:12px"><input type="checkbox" id="dOn" ${DRIVE.enabled?'checked':''}> 연동 사용 — 엑셀 현황표와 학생 지원서를 드라이브에 저장합니다</label>
-        <div style="display:flex;gap:8px;margin-top:16px">
-          <button class="btn btn-brick" id="dSave">설정 저장</button>
-          <button class="btn btn-ghost" id="dClose">닫기</button>
-        </div>
-        <h3 style="font-size:13px;margin:20px 0 8px;color:var(--ink-2)">저장소 미리보기 — 학생 이름 폴더별 (프로토타입 시뮬레이션)</h3>
-        ${DRIVE.files.length ? `<ul class="preview-list" style="max-height:230px;overflow:auto">${DRIVE.files.map(f=>`<li><span>${f.folder?esc(f.folder)+'/':'(최상위)'}${esc(f.name)} <span class="tag">${f.kind}</span></span><span>${f.at}</span></li>`).join('')}</ul>` : `<p class="hint" style="margin:0">아직 저장된 항목이 없습니다. 학생이 최종 제출하거나 엑셀을 내보내면 여기에 쌓입니다.</p>`}
-      </div>
-    </div>
-  </div>`;
-  $('#dSave').onclick = () => {
-    const a = $('#dAcct').value.trim();
-    if(!/\S+@\S+\.\S+/.test(a)){ toast('구글 계정(이메일)을 입력하세요'); $('#dAcct').focus(); return; }
-    DRIVE.account = a; DRIVE.folder = $('#dFolder').value.trim() || '정동장학'; DRIVE.enabled = $('#dOn').checked; saveDrive();
-    $('#layer').innerHTML = ''; toast(`구글드라이브 설정을 저장했습니다 · ${esc(DRIVE.account)} / ${esc(DRIVE.folder)}`);
-  };
-  $('#dClose').onclick = () => $('#layer').innerHTML = '';
-}
-
 /* 엑셀 현황표 내보내기 — 시트 3개: 현황표 / 추천 사유 / 유형별 집계 */
 function exportExcel(){
   const rows = reviewRows();
@@ -1100,14 +953,12 @@ function exportExcel(){
     add(s3, '유형별 집계', [20,7,9,9,9,9,7,7]);
     const xname = `장학생지원현황표_${stamp}.xlsx`;
     XLSX.writeFile(wb, xname);
-    const okD = drivePut('', xname, '엑셀 현황표', `${rows.length}건`);
-    toast(`엑셀 현황표를 내려받았습니다 · ${rows.length}건${okD?' · 구글드라이브에도 저장':''}${DRIVE.enabled&&!okD?' · 드라이브 계정을 먼저 설정하세요':''}`);
+    toast(`엑셀 현황표를 내려받았습니다 · ${rows.length}건`);
   } else {             // CDN을 못 불러온 경우 CSV로 대체
     const keys = Object.keys(s1[0] || {'안내':''});
     const csv = '\ufeff' + [keys.join(','), ...s1.map(o => keys.map(k => `"${String(o[k]??'').replace(/"/g,'""')}"`).join(','))].join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = `장학생지원현황표_${stamp}.csv`; a.click();
     const cname = `장학생지원현황표_${stamp}.csv`;
-    drivePut('', cname, '엑셀 현황표', `${rows.length}건 (CSV)`);
     toast('엑셀 라이브러리를 불러오지 못해 CSV로 내려받았습니다');
   }
 }
@@ -1348,12 +1199,8 @@ function stuForm(main, raw, rec, t, ss){
   $('#finalSubmit').onclick = () => {
     const seq = String(8 + DB.filter(r => r.app).length).padStart(4,'0');
     raw.app = {id:`APP-2026-${seq}`, receipt:`JD-2026-2-${seq}`, submittedAt:today(), type:t.code, data:{...ss.data}, files:{...ss.files}, reapply:ss.reapply};
-    raw.status = 'DONE';
-    // 구글드라이브: 학생 이름 폴더에 지원서와 증빙서류를 저장 (프로토타입 시뮬레이션)
-    const okD = drivePut(raw.student.name, `지원서_${raw.app.receipt}.json`, '학생 지원서', '지원서 데이터');
-    Object.values(raw.app.files||{}).forEach(fn => drivePut(raw.student.name, fn, '학생 지원서', '증빙서류'));
-    save(); ss.stage = 'done'; renderStudent(raw.token);
-    toast(`지원서가 접수되었습니다${okD?` · 구글드라이브 “${esc(raw.student.name)}” 폴더에 저장`:DRIVE.enabled?' · 구글드라이브 계정이 설정되지 않았습니다':''}`);
+    raw.status = 'DONE'; save(); ss.stage = 'done'; renderStudent(raw.token);
+    toast('지원서가 접수되었습니다');
   };
   paintCounts(); check();
 }
@@ -1379,7 +1226,7 @@ function stuDeclined(main, raw){
   $('#undo').onclick = () => { raw.status='WAIT'; save(); delete S[raw.token]; renderStudent(raw.token); };
 }
 
-ssoInit().then(()=>route());
+route();
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
 </body>
